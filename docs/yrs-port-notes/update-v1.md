@@ -101,7 +101,7 @@ V1 trait method bodies (`encoder.rs:104-167`) — every method either delegates 
 - `write_left_id(id)` / `write_right_id(id)` → both call the private `write_id` helper, which is `varuint(client_id.get()) ; varuint(clock)`.
 - `write_client(c)` → `write_var(c.get())`.
 - `write_info(b)` → single raw `u8`.
-- `write_parent_info(b)` → `write_var(if b { 1u32 } else { 0u32 })` (a varuint, **not a single byte** — this is a one-byte pathreadload only because `0` and `1` fit in a single varuint byte).
+- `write_parent_info(b)` → `write_var(if b { 1u32 } else { 0u32 })` (a varuint, **not a single byte** — this is a one-byte payload only because `0` and `1` fit in a single varuint byte).
 - `write_type_ref(b)` → single raw `u8`. The decoder counterpart comments `"In Yjs we use read_var_uint but use only 7 bit. So this is equivalent."` (`decoder.rs:164`).
 - `write_len(n)` → `write_var(n)`.
 - `write_any` → delegates to `Any::encode(self)` (the lib0 Any type-tag wire format — out of scope here, lives in `any.rs`).
@@ -308,7 +308,7 @@ Empty IdSet = `[0x00]`.
 There are two encode entry points to know:
 
 1. `Store::encode_diff` (`store.rs:205-213`) — the **diff** path. Used by `encode_state_as_update_v1(remote_sv)`. Walks the live block store, filters by remote SV, emits per-client runs, then emits the live-store delete-set.
-2. `Update::encode_diff` (`update.rs:393-414`) — the same logic but operating on a parsed-but-not-yet-integrated `Update` (e.g. for `merge_pending_v1`, transaction observer pathreadloads).
+2. `Update::encode_diff` (`update.rs:393-414`) — the same logic but operating on a parsed-but-not-yet-integrated `Update` (e.g. for `merge_pending_v1`, transaction observer payloads).
 
 Both produce identical wire format. The store path is the canonical one.
 

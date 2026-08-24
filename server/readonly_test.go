@@ -92,7 +92,7 @@ func applyUntil(t *testing.T, c *wsClient, arr *types.Array, n int) {
 		}
 		if f.Type == syncpkg.MessageSync &&
 			(f.SyncSub == syncpkg.SyncStep2 || f.SyncSub == syncpkg.SyncUpdate) {
-			_ = encoding.ApplyUpdate(c.doc, f.Pathreadload)
+			_ = encoding.ApplyUpdate(c.doc, f.Payload)
 		}
 	}
 }

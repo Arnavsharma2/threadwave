@@ -31,16 +31,16 @@ SyncStep2 :=
 
 Update :=
     varuint(2)                       // messageYjsUpdate
-  • varbuffer(encodedUpdate)         // a V1 update — same encoding as SyncStep2 pathreadload
+  • varbuffer(encodedUpdate)         // a V1 update — same encoding as SyncStep2 payload
 ```
 
-Citations: `sync.js:44-49` `writeSyncStep1` (writes the tag then `writeVarUint8Array(encoder, encodeStateVector(doc))`); `sync.js:54-57` `writeSyncStep2` (tag + `writeVarUint8Array(encoder, encodeStateAsUpdate(doc, encodedStateVector))`); `sync.js:85-88` `writeUpdate` (tag + `writeVarUint8Array(encoder, update)`). The `readSyncStep2` / `readUpdate` (`sync.js:62-79`, `:92-93`) are functionally identical — `readUpdate` is a direct alias to `readSyncStep2` (`sync.js:92-93`), because once decoded the pathreadload is fed to the same `Y.applyUpdate(doc, pathreadload, transactionOrigin)`.
+Citations: `sync.js:44-49` `writeSyncStep1` (writes the tag then `writeVarUint8Array(encoder, encodeStateVector(doc))`); `sync.js:54-57` `writeSyncStep2` (tag + `writeVarUint8Array(encoder, encodeStateAsUpdate(doc, encodedStateVector))`); `sync.js:85-88` `writeUpdate` (tag + `writeVarUint8Array(encoder, update)`). The `readSyncStep2` / `readUpdate` (`sync.js:62-79`, `:92-93`) are functionally identical — `readUpdate` is a direct alias to `readSyncStep2` (`sync.js:92-93`), because once decoded the payload is fed to the same `Y.applyUpdate(doc, payload, transactionOrigin)`.
 
-The state-vector and update pathreadloads themselves are documented in `update-v1.md` — note they are wrapped in `varbuffer` (length-prefixed byte array) at this layer, so the receiver can extract them opaquely without parsing.
+The state-vector and update payloads themselves are documented in `update-v1.md` — note they are wrapped in `varbuffer` (length-prefixed byte array) at this layer, so the receiver can extract them opaquely without parsing.
 
 ### Dispatcher — `readSyncMessage` (`sync.js:98-116`)
 
-The receiver reads the leading varuint, switches, decodes the pathreadload, and *may* write a reply into the supplied `encoder`. `readSyncMessage` returns the message type so the outer layer can decide whether anything was written (empty encoder = no reply; y-websocket `utils.js:165-170`). Only `readSyncStep1` writes a reply — appending a `SyncStep2` against the received state vector. `readSyncStep2` and `readUpdate` apply silently.
+The receiver reads the leading varuint, switches, decodes the payload, and *may* write a reply into the supplied `encoder`. `readSyncMessage` returns the message type so the outer layer can decide whether anything was written (empty encoder = no reply; y-websocket `utils.js:165-170`). Only `readSyncStep1` writes a reply — appending a `SyncStep2` against the received state vector. `readSyncStep2` and `readUpdate` apply silently.
 
 ### State machine
 
@@ -59,7 +59,7 @@ The receiver reads the leading varuint, switches, decodes the pathreadload, and 
    ◄────────────────────── Update(bytes)        from another client
 ```
 
-Per `PROTOCOL.md` §3.3: client-server flows have the client open with `SyncStep1`; the server replies with `SyncStep2` *and* its own `SyncStep1`. Peer-to-peer flows have both peers send `SyncStep1` on connect — symmetric. `SyncStep2` pathreadloads may be empty when the receiver is already up-to-date — see Gotcha #2.
+Per `PROTOCOL.md` §3.3: client-server flows have the client open with `SyncStep1`; the server replies with `SyncStep2` *and* its own `SyncStep1`. Peer-to-peer flows have both peers send `SyncStep1` on connect — symmetric. `SyncStep2` payloads may be empty when the receiver is already up-to-date — see Gotcha #2.
 
 ---
 
@@ -67,7 +67,7 @@ Per `PROTOCOL.md` §3.3: client-server flows have the client open with `SyncStep
 
 `MessageType` enum (`packages/server/src/types.ts:56-67`):
 
-| Tag | Name | Pathreadload |
+| Tag | Name | Payload |
 |-----|------|---------|
 | `-1` | `Unknown` | sentinel |
 | `0` | `Sync` | nested sync.js sub-message (varuint sub-type + varbuffer) |
@@ -75,8 +75,8 @@ Per `PROTOCOL.md` §3.3: client-server flows have the client open with `SyncStep
 | `2` | `Auth` | auth sub-protocol (token request / permission denied) |
 | `3` | `QueryAwareness` | empty — request remote awareness snapshot |
 | `4` | `SyncReply` | same as `Sync`, server-initiated reply (internal) |
-| `5` | `Stateless` | `varstring(pathreadload)` — opaque user channel |
-| `6` | `BroadcastStateless` | `varstring(pathreadload)` — fan-out variant |
+| `5` | `Stateless` | `varstring(payload)` — opaque user channel |
+| `6` | `BroadcastStateless` | `varstring(payload)` — fan-out variant |
 | `7` | `CLOSE` | close reason (uppercase per upstream) |
 | `8` | `SyncStatus` | one-byte synced flag |
 | `9` | `Ping` | empty (one-byte frame heuristic) |
@@ -85,13 +85,13 @@ Per `PROTOCOL.md` §3.3: client-server flows have the client open with `SyncStep
 ### Outer envelope byte layout
 
 ```
-Message       := varuint(messageType) • pathreadload
+Message       := varuint(messageType) • payload
 Sync          := varuint(0) • varuint(syncSubType) • varbuffer(bytes)
 Awareness     := varuint(1) • varbuffer(awarenessUpdate)
-QueryAwareness:= varuint(3)                         // pathreadload empty
+QueryAwareness:= varuint(3)                         // payload empty
 ```
 
-The outer layer adds **no extra length prefix** around the nested sync message — the y-protocols layer is self-delimited via its own `varbuffer` pathreadload, and the WS frame boundary delimits the whole envelope. `MessageReceiver.apply` (`MessageReceiver.ts:33` ff) switches on the outer varuint, delegating `Sync` to `readSyncMessage` (`:37-54`), `Awareness` to `applyAwarenessUpdate` (`:55-61`), `QueryAwareness` to `applyQueryAwarenessMessage` (`:62-66`), `Stateless`/`BroadcastStateless` to a user callback (`:67-76`). `Auth` (`:77-89`) is special — see §"Auth flow".
+The outer layer adds **no extra length prefix** around the nested sync message — the y-protocols layer is self-delimited via its own `varbuffer` payload, and the WS frame boundary delimits the whole envelope. `MessageReceiver.apply` (`MessageReceiver.ts:33` ff) switches on the outer varuint, delegating `Sync` to `readSyncMessage` (`:37-54`), `Awareness` to `applyAwarenessUpdate` (`:55-61`), `QueryAwareness` to `applyQueryAwarenessMessage` (`:62-66`), `Stateless`/`BroadcastStateless` to a user callback (`:67-76`). `Auth` (`:77-89`) is special — see §"Auth flow".
 
 ---
 
@@ -115,7 +115,7 @@ Recommended layout. `internal/sync/protocol.go` holds typed `MessageType uint8` 
 
 ## Auth flow
 
-Hocuspocus's auth path: client sends `MessageAuth` (tag `2`) with pathreadload `varuint(authSubType) • varstring(token)` (`AuthMessageType.Token`; `MessageReceiver.ts:77-89`). Server invokes `onAuthenticate(token)`; on success no reply is needed and Sync proceeds; on failure the server sends a Close (tag `7`) with a "permission denied" reason and terminates the WS with code `4401`.
+Hocuspocus's auth path: client sends `MessageAuth` (tag `2`) with payload `varuint(authSubType) • varstring(token)` (`AuthMessageType.Token`; `MessageReceiver.ts:77-89`). Server invokes `onAuthenticate(token)`; on success no reply is needed and Sync proceeds; on failure the server sends a Close (tag `7`) with a "permission denied" reason and terminates the WS with code `4401`.
 
 In Go: `Options.OnAuthenticate func(ctx, docName, token string) error` — `nil` accepts, error sends `MessageClose`. **Recommendation: defer to v0.2.** Bare y-websocket does not support auth at all (commented out at `utils.js:70`), so a y-websocket-compatible server with zero auth covers the majority of adopters. The full `AuthMessageType` sub-tag protocol and permission-denied close-code dance is a non-trivial v0.1 surface.
 
@@ -123,23 +123,23 @@ In Go: `Options.OnAuthenticate func(ctx, docName, token string) error` — `nil`
 
 ## Awareness integration
 
-Awareness travels on the same WS connection as Sync, multiplexed via outer tag `1`. Our `internal/awareness` package already owns encode/decode of the pathreadload (`awareness.md` §3); the sync layer only adds the outer `varuint(1)` tag and the `varbuffer` wrapper.
+Awareness travels on the same WS connection as Sync, multiplexed via outer tag `1`. Our `internal/awareness` package already owns encode/decode of the payload (`awareness.md` §3); the sync layer only adds the outer `varuint(1)` tag and the `varbuffer` wrapper.
 
-Wire flow (`utils.js:107-122`, `:172-174`, `:195`): server registers an `awarenessChangeHandler` against `doc.awareness` that fans out a tag-`1` envelope to every connection whenever state changes; on receive of a tag-`1` envelope, calls `applyAwarenessUpdate(doc.awareness, pathreadload, conn)` with `conn` as the origin (so the change handler can update the per-connection `Set<clientID>` ownership map at `utils.js:109-115`); on disconnect, calls `removeAwarenessStates(doc.awareness, controlledIds, null)`, which fires removal events to all peers.
+Wire flow (`utils.js:107-122`, `:172-174`, `:195`): server registers an `awarenessChangeHandler` against `doc.awareness` that fans out a tag-`1` envelope to every connection whenever state changes; on receive of a tag-`1` envelope, calls `applyAwarenessUpdate(doc.awareness, payload, conn)` with `conn` as the origin (so the change handler can update the per-connection `Set<clientID>` ownership map at `utils.js:109-115`); on disconnect, calls `removeAwarenessStates(doc.awareness, controlledIds, null)`, which fires removal events to all peers.
 
-Go: `server/conn.go` holds `controlledClients map[uint64]struct{}` per connection. On `MessageAwareness`, call `awareness.Apply(pathreadload, conn)` and reconcile from the returned `Summary{Added, Removed}`. On WS close, iterate `controlledClients` and call `awareness.RemoveState(clientID)` for each — the resulting removal events drive the broadcast handler.
+Go: `server/conn.go` holds `controlledClients map[uint64]struct{}` per connection. On `MessageAwareness`, call `awareness.Apply(payload, conn)` and reconcile from the returned `Summary{Added, Removed}`. On WS close, iterate `controlledClients` and call `awareness.RemoveState(clientID)` for each — the resulting removal events drive the broadcast handler.
 
 ---
 
 ## Gotchas — implementer must not miss
 
-1. **QueryAwareness handshake.** Hocuspocus clients may send a `varuint(3)` envelope (empty pathreadload) at any time to request the current full awareness snapshot (`HocuspocusProviderWebsocket.ts:65-72`, `MessageReceiver.ts:62-66`). Server must reply with a tag-`1` envelope containing `encodeAwarenessUpdate(awareness, Array.from(awareness.states.keys()))`. y-websocket servers do NOT support this — so a Hocuspocus client against a y-websocket server silently misses the bulk snapshot and recovers only on next incremental change. Implement in v0.1 even if you skip Auth.
+1. **QueryAwareness handshake.** Hocuspocus clients may send a `varuint(3)` envelope (empty payload) at any time to request the current full awareness snapshot (`HocuspocusProviderWebsocket.ts:65-72`, `MessageReceiver.ts:62-66`). Server must reply with a tag-`1` envelope containing `encodeAwarenessUpdate(awareness, Array.from(awareness.states.keys()))`. y-websocket servers do NOT support this — so a Hocuspocus client against a y-websocket server silently misses the bulk snapshot and recovers only on next incremental change. Implement in v0.1 even if you skip Auth.
 
-2. **SyncStep2 may be empty.** If the receiver has nothing the sender is missing, `Y.encodeStateAsUpdate(doc, remoteSV)` returns a well-formed V1 update with zero blocks and empty delete set — wire bytes `varuint(0) • varuint(0)`, wrapped in the outer `varbuffer`. Do not treat empty pathreadloads as errors; `applyUpdate` on an empty update is a no-op.
+2. **SyncStep2 may be empty.** If the receiver has nothing the sender is missing, `Y.encodeStateAsUpdate(doc, remoteSV)` returns a well-formed V1 update with zero blocks and empty delete set — wire bytes `varuint(0) • varuint(0)`, wrapped in the outer `varbuffer`. Do not treat empty payloads as errors; `applyUpdate` on an empty update is a no-op.
 
 3. **Updates may arrive before SyncStep2 lands.** Once the WS is open both peers are free to broadcast `Update` messages; an update with `clock > localStateVector[clientID]` cannot be integrated until intermediates arrive. Route every incoming `MessageSync` with `SyncUpdate` (and the V1 update inside `SyncStep2`) through `encoding.Pending`, not directly into the doc.
 
-4. **WebSocket framing length-prefixing is independent.** The WS frame already carries its own pathreadload length — the y-protocols layer does not re-prefix the whole envelope. It DOES prefix the inner pathreadload (state vector or update bytes) via `varbuffer`, so `readSyncMessage` knows where it ends without consulting the WS frame boundary. Do not add a redundant outer length tag.
+4. **WebSocket framing length-prefixing is independent.** The WS frame already carries its own payload length — the y-protocols layer does not re-prefix the whole envelope. It DOES prefix the inner payload (state vector or update bytes) via `varbuffer`, so `readSyncMessage` knows where it ends without consulting the WS frame boundary. Do not add a redundant outer length tag.
 
 5. **One WebSocket = one document.** docName is extracted from the URL path at connect time (`utils.js:182-184`). All Sync and Awareness traffic on that connection refers to that one doc. Multiplexing multiple docs onto one WS is not part of either protocol — clients open a separate WS per doc.
 

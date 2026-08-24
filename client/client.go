@@ -410,7 +410,7 @@ func (c *Client) readPump(ctx context.Context, conn *websocket.Conn) error {
 				c.opts.OnError(err)
 			}
 		case syncpkg.MessageAwareness:
-			_, _ = c.awareness.Apply(frame.Pathreadload, "remote")
+			_, _ = c.awareness.Apply(frame.Payload, "remote")
 		case syncpkg.MessageQueryAwareness:
 			c.sendAwareness()
 		case syncpkg.MessagePing:
@@ -425,7 +425,7 @@ func (c *Client) handleSync(frame *syncpkg.Frame) error {
 	case syncpkg.SyncStep1:
 		// Server announces its state vector; reply with the diff and
 		// record that the server now has everything up to our SV.
-		remoteSV, _, err := encoding.DecodeStateVector(frame.Pathreadload)
+		remoteSV, _, err := encoding.DecodeStateVector(frame.Payload)
 		if err != nil {
 			return fmt.Errorf("client: step1 decode: %w", err)
 		}
@@ -441,10 +441,10 @@ func (c *Client) handleSync(frame *syncpkg.Frame) error {
 		c.mu.Unlock()
 		return nil
 	case syncpkg.SyncStep2, syncpkg.SyncUpdate:
-		if len(frame.Pathreadload) == 0 {
+		if len(frame.Payload) == 0 {
 			return nil
 		}
-		if err := c.apply(frame.Pathreadload); err != nil {
+		if err := c.apply(frame.Payload); err != nil {
 			return err
 		}
 		if frame.SyncSub == syncpkg.SyncStep2 {
@@ -457,8 +457,8 @@ func (c *Client) handleSync(frame *syncpkg.Frame) error {
 
 // apply integrates a remote update, tagging the transaction with this
 // client as Origin so the local-edit observer skips it.
-func (c *Client) apply(pathreadload []byte) error {
-	upd, _, err := encoding.DecodeUpdate(pathreadload)
+func (c *Client) apply(payload []byte) error {
+	upd, _, err := encoding.DecodeUpdate(payload)
 	if err != nil {
 		return fmt.Errorf("client: update decode: %w", err)
 	}

@@ -209,7 +209,7 @@
 ### Forward-dependency stubs are empty types
 
 - **Where:** `internal/block/stubs.go` (`Branch`, `Move`).
-- **What:** placeholder `type X struct{}` definitions so the block package compiles. (`Doc` was previously here; now lives in `internal/doc`. The block-layer `Doc` stub is now only referenced by `block.Content.Doc` / `block.Content.ParentDoc` for `KindDoc` pathreadloads, which is read-only data the block layer never inspects.)
+- **What:** placeholder `type X struct{}` definitions so the block package compiles. (`Doc` was previously here; now lives in `internal/doc`. The block-layer `Doc` stub is now only referenced by `block.Content.Doc` / `block.Content.ParentDoc` for `KindDoc` payloads, which is read-only data the block layer never inspects.)
 - **Why deferred:** by design — the block layer references these only through pointers and never inspects their internals. Real definitions land with their owning layers.
 - **When to address:** `Branch` with the types layer; `Move` post-MVP per ROADMAP. The `block.Doc` stub stays even after `internal/doc.Doc` lands, because the block layer can't depend on the doc layer (would cycle); we'll bridge them through an interface when sub-document support arrives.
 
@@ -233,7 +233,7 @@
 - **Resolved by:**
   - `internal/sync/protocol.go` adds AuthSubType constants (PermissionDenied=0, Authenticated=1, Token=2) and `CloseStatusUnauthorized = 4401`.
   - `internal/sync/framing.go` adds encoders + decoders for all 5 types. DecodeEnvelope populates Frame.AuthSub for Auth messages.
-  - `internal/sync/handler.go` adds `OnAuthenticate(docName, token) error` and `OnStateless(docName, pathreadload)` hooks plus `AuthFailed` flag. Auth handler decodes Token sub-type, invokes the callback; on deny sends AuthPermissionDenied + Close and sets AuthFailed. Stateless invokes the callback (no reply). BroadcastStateless also fans out via Broadcast. Close and SyncStatus accepted silently.
+  - `internal/sync/handler.go` adds `OnAuthenticate(docName, token) error` and `OnStateless(docName, payload)` hooks plus `AuthFailed` flag. Auth handler decodes Token sub-type, invokes the callback; on deny sends AuthPermissionDenied + Close and sets AuthFailed. Stateless invokes the callback (no reply). BroadcastStateless also fans out via Broadcast. Close and SyncStatus accepted silently.
   - `server/server.go` exposes `Options.OnAuthenticate` and `Options.OnStateless`. The readLoop checks `AuthFailed` after each HandleFrame and tears down the WS with `CloseStatusUnauthorized` (4401) when set.
   - 7 unit tests in `internal/sync/hocuspocus_test.go` plus 3 E2E tests in `server/server_test.go` (deny → 4401 close, accept → Authenticated reply, broadcast-stateless fans out across two clients).
 - **Connection-level read-only (resolved):** `server.Options.ReadOnly func(docName, r) bool` marks a connection read-only; the sync handler then drops inbound document mutations (SyncStep2 / SyncUpdate: no apply, no broadcast) while still serving reads (SyncStep1) and still accepting awareness. Enforced in `internal/sync/handler.go` via `Conn.ReadOnly`.
@@ -242,7 +242,7 @@
 ### Cross-language y-websocket / Hocuspocus fixture (resolved)
 
 - **Was:** byte-level wire format asserted only via hand-built fixtures in `framing_test.go` and pure-Go round-trip in `handler_test.go`.
-- **Resolved by:** `testdata/gen/gen-sync.mjs` captures 6 envelope scenarios (SyncStep1 from empty + non-empty doc, SyncStep2 with array state, SyncUpdate incremental text insert, Awareness frame, QueryAwareness handshake) using y-protocols/sync + Hocuspocus outer-tag layout. `internal/sync/fixtures_test.go` decodes each via DecodeEnvelope and verifies Type / SyncSub / Pathreadload match. Reverse-encode test for QueryAwareness (only deterministic-pathreadload type) confirms byte-equality.
+- **Resolved by:** `testdata/gen/gen-sync.mjs` captures 6 envelope scenarios (SyncStep1 from empty + non-empty doc, SyncStep2 with array state, SyncUpdate incremental text insert, Awareness frame, QueryAwareness handshake) using y-protocols/sync + Hocuspocus outer-tag layout. `internal/sync/fixtures_test.go` decodes each via DecodeEnvelope and verifies Type / SyncSub / Payload match. Reverse-encode test for QueryAwareness (only deterministic-payload type) confirms byte-equality.
 
 ### Broadcast fan-out is O(N) per update with no rate limiting
 
@@ -284,7 +284,7 @@
 ### Resolved: server-driven timeout sweep + presence DoS hardening
 
 - **Was:** `SweepOutdated` was exposed on `internal/awareness/awareness.go` but no goroutine drove it. The awareness type follows yrs (the embedder owns the lifecycle); the y-protocols JS impl runs an internal `setInterval` every `outdatedTimeout/10`. With no driver, a long-lived room accumulated stale presence entries and tombstone keys without bound, and `Apply` accepted unlimited fabricated clientIDs — both memory-exhaustion vectors against an exposed WebSocket server.
-- **Resolved by:** the awareness type stays passive (no surprise lifecycle), but the `server/` layer now drives eviction. `server/awareness_sweep.go` runs a ticker at `AwarenessTimeout/10` (floored 1s, matching the JS cadence) that, per live document, `SweepOutdated`s silent clients, broadcasts the removals, then `PurgeTombstones` (a new GC that deletes tombstone keys older than `2*timeout`, reclaiming map slots). Three new caps close the DoS vectors: `decodeUpdate` rejects an entry count above `MaxUpdateEntries` (65536) **before** the count-driven pre-allocation (the length-prefix amplification attack) and a per-entry pathreadload above `MaxStatePathreadloadBytes` (64 KiB); `Awareness.SetMaxClients(n)` bounds the distinct clientIDs one room tracks (server default 4096, `Options.MaxAwarenessClients`), and `handleAwareness` re-broadcasts only the entries the cap actually accepted (re-encoded from state), so a flood neither bloats the server map nor propagates to cap-less browser peers. Lifecycle is clean: the sweep goroutine starts in `server.New` and is joined in `server.Close`.
+- **Resolved by:** the awareness type stays passive (no surprise lifecycle), but the `server/` layer now drives eviction. `server/awareness_sweep.go` runs a ticker at `AwarenessTimeout/10` (floored 1s, matching the JS cadence) that, per live document, `SweepOutdated`s silent clients, broadcasts the removals, then `PurgeTombstones` (a new GC that deletes tombstone keys older than `2*timeout`, reclaiming map slots). Three new caps close the DoS vectors: `decodeUpdate` rejects an entry count above `MaxUpdateEntries` (65536) **before** the count-driven pre-allocation (the length-prefix amplification attack) and a per-entry payload above `MaxStatePayloadBytes` (64 KiB); `Awareness.SetMaxClients(n)` bounds the distinct clientIDs one room tracks (server default 4096, `Options.MaxAwarenessClients`), and `handleAwareness` re-broadcasts only the entries the cap actually accepted (re-encoded from state), so a flood neither bloats the server map nor propagates to cap-less browser peers. Lifecycle is clean: the sweep goroutine starts in `server.New` and is joined in `server.Close`.
 - **Remaining:** library callers using `internal/awareness` directly still wrap `SweepOutdated`/`PurgeTombstones` in their own ticker (by design); only the bundled server auto-drives it.
 
 ## XML types (mostly resolved)
@@ -395,7 +395,7 @@
 ### B3.2 (Many clients set Object in shared Map) currently skipped
 
 - **Where:** `benchmarks/b3_test.go` `BenchmarkB3_2_ManyClientsSetObject`.
-- **What:** the upstream B3.2 spec writes a JSON `{a:1, b:"x"}` object as the Map value. Our `EncodeAny` does not support `map[string]any` pathreadloads (panics with "unsupported value type"). The same gap blocks any Any TLV containing arrays / objects / buffers / bigint / float32.
+- **What:** the upstream B3.2 spec writes a JSON `{a:1, b:"x"}` object as the Map value. Our `EncodeAny` does not support `map[string]any` payloads (panics with "unsupported value type"). The same gap blocks any Any TLV containing arrays / objects / buffers / bigint / float32.
 - **Why deferred:** Any TLV was scoped to scalars in the MVP — see "Any type is a placeholder" entry above. Closing this unblocks B3.2 (and unlocks objects-as-values for adopters using Map for JSON-shaped configuration).
 - **When to address:** with the broader Any TLV variant work. Implementation: extend `internal/encoding/any_codec.go` to handle the upstream lib0 Any tag set (tags 116-127 covering array / object / undefined / float32 / bigint / buffer).
 

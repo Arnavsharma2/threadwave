@@ -298,7 +298,7 @@ func originEqual(a, b *ID) bool {
 //   - i.Right == other (current linked-list pointers agree).
 //   - Neither is in a Move range or has been redone.
 //   - Neither is weak-linked.
-//   - Content.TrySquash succeeds for the kind-specific pathreadload.
+//   - Content.TrySquash succeeds for the kind-specific payload.
 //
 // Mirrors yrs/src/block.rs:848-876 ItemPtr::try_squash.
 func (i *Item) TrySquash(other *Item) bool {

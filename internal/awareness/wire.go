@@ -18,18 +18,18 @@ import (
 // small.
 const MaxUpdateEntries = 65536
 
-// MaxStatePathreadloadBytes bounds a single client's JSON state on the
+// MaxStatePayloadBytes bounds a single client's JSON state on the
 // wire. lib0.ReadVarString already bounds its read by the remaining
 // buffer (no length-driven pre-alloc), so this is policy, not an OOM
 // guard: defense-in-depth so one peer cannot pin memory with an
 // oversized entry on callers whose transport imposes no read limit.
-// Cursor, selection, and user-identity pathreadloads run well under a
+// Cursor, selection, and user-identity payloads run well under a
 // kilobyte; 64 KiB is generous. (The server's WebSocket read limit
 // is tighter still, so this never rejects legitimate server traffic.)
-const MaxStatePathreadloadBytes = 64 * 1024
+const MaxStatePayloadBytes = 64 * 1024
 
 // wireEntry is the per-client wire-format record assembled before
-// encoding. JSON is the raw pathreadload bytes — either the user's
+// encoding. JSON is the raw payload bytes — either the user's
 // JSON state or the literal four-byte "null" sentinel for removals.
 type wireEntry struct {
 	ClientID uint64
@@ -99,8 +99,8 @@ func decodeUpdate(buf []byte) ([]wireEntry, []byte, error) {
 		if err != nil {
 			return nil, buf, fmt.Errorf("decode entry[%d] json: %w", i, err)
 		}
-		if len(jsonStr) > MaxStatePathreadloadBytes {
-			return nil, buf, fmt.Errorf("decode entry[%d] json pathreadload %d bytes exceeds limit %d", i, len(jsonStr), MaxStatePathreadloadBytes)
+		if len(jsonStr) > MaxStatePayloadBytes {
+			return nil, buf, fmt.Errorf("decode entry[%d] json payload %d bytes exceeds limit %d", i, len(jsonStr), MaxStatePayloadBytes)
 		}
 		buf = buf[n:]
 

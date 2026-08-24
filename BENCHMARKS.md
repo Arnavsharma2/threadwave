@@ -256,7 +256,7 @@ Baseline (Apple M3, Go 1.26.3, loopback httptest server, coder/websocket):
 *Broadcast fan-out* is one client sending a fixed `SyncUpdate` and reading
 its own broadcast echo while N-1 idle peers drain their copies. It
 isolates the server's apply + fan-out cost from client encoding (the
-pathreadload is pre-built and constant). Cost scales roughly linearly with the
+payload is pre-built and constant). Cost scales roughly linearly with the
 room size, about 4.4 µs of marginal fan-out per additional peer on top of
 ~24 µs of base round-trip, as expected for a per-peer serialized write.
 

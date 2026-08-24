@@ -195,9 +195,9 @@ func TestEncodeDecode_RoundTrip(t *testing.T) {
 	if len(gotStates) != len(wantStates) {
 		t.Fatalf("state count mismatch: got %d, want %d", len(gotStates), len(wantStates))
 	}
-	for id, pathreadload := range wantStates {
-		if got, ok := gotStates[id]; !ok || !bytes.Equal(got, pathreadload) {
-			t.Errorf("client %d: got %s, want %s", id, got, pathreadload)
+	for id, payload := range wantStates {
+		if got, ok := gotStates[id]; !ok || !bytes.Equal(got, payload) {
+			t.Errorf("client %d: got %s, want %s", id, got, payload)
 		}
 	}
 }
@@ -463,14 +463,14 @@ func TestRemoveState_RemovesPeerNotLocal(t *testing.T) {
 }
 
 func TestWireFixture_KnownBytesDecode(t *testing.T) {
-	// Hand-built wire pathreadload: one entry, client=5, clock=10,
+	// Hand-built wire payload: one entry, client=5, clock=10,
 	// json=`{"a":1}` (7 bytes).
 	//
 	//   0x01           varuint 1 entry
 	//   0x05           varuint clientID 5
 	//   0x0a           varuint clock 10
 	//   0x07           varuint string-length 7
-	//   { " a " : 1 }  ASCII pathreadload
+	//   { " a " : 1 }  ASCII payload
 	wire := []byte{
 		0x01,
 		0x05,

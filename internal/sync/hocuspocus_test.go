@@ -95,8 +95,8 @@ func TestHocus_AuthToken_CallbackDenies(t *testing.T) {
 	if first.Type != syncpkg.MessageAuth || first.AuthSub != syncpkg.AuthPermissionDenied {
 		t.Errorf("first reply = %d/%d, want Auth/PermissionDenied", first.Type, first.AuthSub)
 	}
-	if string(first.Pathreadload) != "token expired" {
-		t.Errorf("reason = %q, want token expired", first.Pathreadload)
+	if string(first.Payload) != "token expired" {
+		t.Errorf("reason = %q, want token expired", first.Payload)
 	}
 	second, _, _ := syncpkg.DecodeEnvelope(tr.Sent[1])
 	if second.Type != syncpkg.MessageClose {
@@ -106,10 +106,10 @@ func TestHocus_AuthToken_CallbackDenies(t *testing.T) {
 
 func TestHocus_Stateless_CallbackInvoked(t *testing.T) {
 	conn, _ := newHocusConn(t, "doc-A")
-	var seenDocName, seenPathreadload string
-	conn.OnStateless = func(docName, pathreadload string) {
+	var seenDocName, seenPayload string
+	conn.OnStateless = func(docName, payload string) {
 		seenDocName = docName
-		seenPathreadload = pathreadload
+		seenPayload = payload
 	}
 
 	wire := syncpkg.EncodeStateless(`{"rpc":"ping"}`)
@@ -117,8 +117,8 @@ func TestHocus_Stateless_CallbackInvoked(t *testing.T) {
 	if err := conn.HandleFrame(frame); err != nil {
 		t.Fatal(err)
 	}
-	if seenDocName != "doc-A" || seenPathreadload != `{"rpc":"ping"}` {
-		t.Errorf("callback args = (%q, %q)", seenDocName, seenPathreadload)
+	if seenDocName != "doc-A" || seenPayload != `{"rpc":"ping"}` {
+		t.Errorf("callback args = (%q, %q)", seenDocName, seenPayload)
 	}
 }
 
@@ -135,9 +135,9 @@ func TestHocus_BroadcastStateless_FansOut(t *testing.T) {
 	}
 	echoed, _, _ := syncpkg.DecodeEnvelope(tr.Broadcast[0])
 	if echoed.Type != syncpkg.MessageBroadcastStateless ||
-		string(echoed.Pathreadload) != "hello-everyone" {
+		string(echoed.Payload) != "hello-everyone" {
 		t.Errorf("broadcast = %d/%q, want BroadcastStateless/hello-everyone",
-			echoed.Type, echoed.Pathreadload)
+			echoed.Type, echoed.Payload)
 	}
 }
 
@@ -163,8 +163,8 @@ func TestHocus_SyncStatus_SilentlyAccepted(t *testing.T) {
 	if len(tr.Sent) != 0 || len(tr.Broadcast) != 0 {
 		t.Errorf("SyncStatus generated traffic")
 	}
-	if !bytes.Equal(frame.Pathreadload, []byte{0x01}) {
-		t.Errorf("SyncStatus pathreadload = %x, want [01]", frame.Pathreadload)
+	if !bytes.Equal(frame.Payload, []byte{0x01}) {
+		t.Errorf("SyncStatus payload = %x, want [01]", frame.Payload)
 	}
 }
 
@@ -172,11 +172,11 @@ func TestHocus_EncodeDecode_WireBytesRoundTrip(t *testing.T) {
 	// Each new encoder produces bytes that DecodeEnvelope parses
 	// into a Frame with matching fields.
 	cases := []struct {
-		name                string
-		wire                []byte
-		wantType            syncpkg.MessageType
-		wantAuthSub         syncpkg.AuthSubType
-		wantPathreadloadStr string
+		name           string
+		wire           []byte
+		wantType       syncpkg.MessageType
+		wantAuthSub    syncpkg.AuthSubType
+		wantPayloadStr string
 	}{
 		{"auth.token", syncpkg.EncodeAuthToken("t"), syncpkg.MessageAuth, syncpkg.AuthToken, "t"},
 		{"auth.authenticated", syncpkg.EncodeAuthAuthenticated(), syncpkg.MessageAuth, syncpkg.AuthAuthenticated, ""},
@@ -203,8 +203,8 @@ func TestHocus_EncodeDecode_WireBytesRoundTrip(t *testing.T) {
 			if c.wantType == syncpkg.MessageAuth && frame.AuthSub != c.wantAuthSub {
 				t.Errorf("AuthSub = %d, want %d", frame.AuthSub, c.wantAuthSub)
 			}
-			if c.wantType != syncpkg.MessageSyncStatus && string(frame.Pathreadload) != c.wantPathreadloadStr {
-				t.Errorf("Pathreadload = %q, want %q", frame.Pathreadload, c.wantPathreadloadStr)
+			if c.wantType != syncpkg.MessageSyncStatus && string(frame.Payload) != c.wantPayloadStr {
+				t.Errorf("Payload = %q, want %q", frame.Payload, c.wantPayloadStr)
 			}
 		})
 	}

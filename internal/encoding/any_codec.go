@@ -10,7 +10,7 @@ import (
 )
 
 // lib0 Any TLV type tags. Tag bytes are written as a single uint8
-// followed by the variant-specific pathreadload. Constants reproduced
+// followed by the variant-specific payload. Constants reproduced
 // verbatim from lib0/encoding.js writeAny (and confirmed against
 // docs/yrs-port-notes/update-v1.md content table).
 const (
@@ -37,12 +37,12 @@ var ErrUnsupportedAnyTag = errors.New("encoding: unsupported Any tag")
 // Supported variants:
 //   - nil → null (tag 126)
 //   - bool → true/false (tags 120/121)
-//   - string → string (tag 119, varstring pathreadload)
-//   - int / int32 / int64 fitting in 32 bits → integer (tag 125, varint pathreadload)
-//   - int / int64 outside 32-bit range → float64 (tag 123, 8-byte BE pathreadload)
+//   - string → string (tag 119, varstring payload)
+//   - int / int32 / int64 fitting in 32 bits → integer (tag 125, varint payload)
+//   - int / int64 outside 32-bit range → float64 (tag 123, 8-byte BE payload)
 //     — matches lib0's BITS31 sniff for safe-integer range
-//   - float32 → float32 (tag 124, 4-byte BE pathreadload)
-//   - float64 → float64 (tag 123, 8-byte BE pathreadload)
+//   - float32 → float32 (tag 124, 4-byte BE payload)
+//   - float64 → float64 (tag 123, 8-byte BE payload)
 //   - []byte → binary (tag 116, varuint length + bytes)
 //   - []any → array (tag 117, varuint count + each element recursively)
 //   - map[string]any → object (tag 118, varuint count + each (varstring key + Any value)).
@@ -52,7 +52,7 @@ var ErrUnsupportedAnyTag = errors.New("encoding: unsupported Any tag")
 //
 // Not yet supported (panics):
 //   - math/big BigInt encoding (decode side returns int64 from the
-//     8-byte BE pathreadload, matching lib0 writeBigInt64; encoding from
+//     8-byte BE payload, matching lib0 writeBigInt64; encoding from
 //     Go side is deferred until an adopter actually needs it)
 //
 // Mirrors lib0/encoding.js writeAny.

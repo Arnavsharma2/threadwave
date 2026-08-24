@@ -178,7 +178,7 @@ func (t *TransactionMut) Commit() {
 	// keep, which the GC pass below must see, so observers run BEFORE
 	// gcDeleted.
 	t.doc.fireAfterTransactionHandlers(t)
-	// Garbage-collect deleted content (free pathreadloads, merge deleted
+	// Garbage-collect deleted content (free payloads, merge deleted
 	// runs), skipping items marked keep by an observer.
 	t.gcDeleted()
 	t.doc.mu.Unlock()
@@ -290,7 +290,7 @@ func (t *TransactionMut) SubdocsLoaded() []string { return t.subdocsLoaded }
 // gcDeleted frees the content of items tombstoned during this
 // transaction and merges adjacent deleted runs, matching yjs's
 // commit-time GC (tryGcDeleteSet + tryMergeDeleteSet). A deleted item's
-// pathreadload is replaced with a ContentDeleted marker of the same length,
+// payload is replaced with a ContentDeleted marker of the same length,
 // so the wire form becomes ContentDeleted (ref 1), byte-aligned with
 // what yjs emits for a deleted item. Skipped when GC is disabled
 // (snapshots / time-travel need the content) and for items marked keep

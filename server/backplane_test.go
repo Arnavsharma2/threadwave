@@ -35,7 +35,7 @@ func awaitContains(t *testing.T, c *wsClient, want string) []any {
 		frame := c.readUntil(t, func(f *syncpkg.Frame) bool {
 			return f.Type == syncpkg.MessageSync && f.SyncSub == syncpkg.SyncUpdate
 		})
-		if err := encoding.ApplyUpdate(c.doc, frame.Pathreadload); err != nil {
+		if err := encoding.ApplyUpdate(c.doc, frame.Payload); err != nil {
 			t.Fatal(err)
 		}
 		got := types.NewArray(c.doc.Branch("items")).ToSlice()
@@ -123,7 +123,7 @@ func TestServer_Backplane_LateJoinerSyncsFromResidentDoc(t *testing.T) {
 	step2 := late.readUntil(t, func(f *syncpkg.Frame) bool {
 		return f.Type == syncpkg.MessageSync && f.SyncSub == syncpkg.SyncStep2
 	})
-	if err := encoding.ApplyUpdate(late.doc, step2.Pathreadload); err != nil {
+	if err := encoding.ApplyUpdate(late.doc, step2.Payload); err != nil {
 		t.Fatal(err)
 	}
 	if got := types.NewArray(late.doc.Branch("items")).ToSlice(); len(got) != 1 || got[0] != "from-A" {
@@ -153,7 +153,7 @@ func awaitAwareness(t *testing.T, c *wsClient, clientID uint64) []byte {
 	t.Helper()
 	for i := 0; i < 10; i++ {
 		f := c.readUntil(t, func(f *syncpkg.Frame) bool { return f.Type == syncpkg.MessageAwareness })
-		if _, err := c.awareness.Apply(f.Pathreadload, "test"); err != nil {
+		if _, err := c.awareness.Apply(f.Payload, "test"); err != nil {
 			t.Fatal(err)
 		}
 		if st, ok := c.awareness.States()[clientID]; ok && st != nil {
@@ -170,7 +170,7 @@ func awaitAwarenessGone(t *testing.T, c *wsClient, clientID uint64) {
 	t.Helper()
 	for i := 0; i < 10; i++ {
 		f := c.readUntil(t, func(f *syncpkg.Frame) bool { return f.Type == syncpkg.MessageAwareness })
-		if _, err := c.awareness.Apply(f.Pathreadload, "test"); err != nil {
+		if _, err := c.awareness.Apply(f.Payload, "test"); err != nil {
 			t.Fatal(err)
 		}
 		if _, ok := c.awareness.States()[clientID]; !ok {
@@ -385,8 +385,8 @@ func syncAndAwait(t *testing.T, c *wsClient, want string) {
 			return f.Type == syncpkg.MessageSync &&
 				(f.SyncSub == syncpkg.SyncStep2 || f.SyncSub == syncpkg.SyncUpdate)
 		})
-		if len(f.Pathreadload) > 0 {
-			if err := encoding.ApplyUpdate(c.doc, f.Pathreadload); err != nil {
+		if len(f.Payload) > 0 {
+			if err := encoding.ApplyUpdate(c.doc, f.Payload); err != nil {
 				t.Fatal(err)
 			}
 		}

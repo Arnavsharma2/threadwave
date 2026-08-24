@@ -10,7 +10,7 @@ package block
 // (Item.js:1382-1388) and yrs/src/types/mod.rs TypeRef enum.
 //
 // The TypeRef byte is emitted as a varuint at the start of a
-// ContentType pathreadload — see docs/yrs-port-notes/nested-types.md §2.
+// ContentType payload — see docs/yrs-port-notes/nested-types.md §2.
 // Root branches do NOT emit TypeRef on the wire (they are referenced
 // by name), but their in-memory Branch.TypeRef field is still set so
 // extractValue can return the right wrapper type to user code.
@@ -18,7 +18,7 @@ package block
 // TypeRefArray is intentionally 0 to match the JS/Rust wire value.
 // TypeRefUndefined (15) is the sentinel for "not specified" — used
 // for Branch values constructed before their final type is known
-// (e.g. a freshly-decoded ContentType pathreadload whose type-refs byte
+// (e.g. a freshly-decoded ContentType payload whose type-refs byte
 // hasn't been read yet). A zero Branch{} would silently read as Array
 // without an explicit sentinel, so constructors must set TypeRef
 // explicitly.
@@ -113,7 +113,7 @@ type Move struct{}
 // without pulling in the doc package.
 type Doc struct{}
 
-// Any is the JSON-like value type used as the pathreadload for ContentAny,
+// Any is the JSON-like value type used as the payload for ContentAny,
 // ContentEmbed, ContentFormat. yrs's Any is a proper tagged union
 // (Bool, Number, BigInt, String, Buffer, Array, Map, Null, Undefined).
 //

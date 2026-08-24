@@ -243,7 +243,7 @@ func (d *Doc) RemoveSubdoc(guid string) {
 // SubdocsEvent carries the subdocument lifecycle changes observed in a
 // single transaction: the GUIDs added (a ContentDoc surfaced), removed
 // (its reference was tombstoned), and loaded (autoLoad or an explicit
-// Load). Mirrors yjs's "subdocs" event pathreadload.
+// Load). Mirrors yjs's "subdocs" event payload.
 type SubdocsEvent struct {
 	Added   []string
 	Removed []string

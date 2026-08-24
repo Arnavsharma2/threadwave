@@ -41,10 +41,10 @@ func TestApply_RejectsOversizedCount(t *testing.T) {
 	}
 }
 
-// TestApply_RejectsOversizedPathreadload rejects a single entry whose JSON
+// TestApply_RejectsOversizedPayload rejects a single entry whose JSON
 // state exceeds the per-entry byte cap.
-func TestApply_RejectsOversizedPathreadload(t *testing.T) {
-	huge := bytes.Repeat([]byte("a"), MaxStatePathreadloadBytes+1)
+func TestApply_RejectsOversizedPayload(t *testing.T) {
+	huge := bytes.Repeat([]byte("a"), MaxStatePayloadBytes+1)
 	blob := encodeUpdate([]wireEntry{{ClientID: 10, Clock: 1, JSON: huge}})
 
 	a := New(1)
@@ -55,11 +55,11 @@ func TestApply_RejectsOversizedPathreadload(t *testing.T) {
 		t.Error("oversized entry was applied; want dropped")
 	}
 
-	// A pathreadload exactly at the limit is accepted.
-	ok := bytes.Repeat([]byte("b"), MaxStatePathreadloadBytes)
+	// A payload exactly at the limit is accepted.
+	ok := bytes.Repeat([]byte("b"), MaxStatePayloadBytes)
 	okBlob := encodeUpdate([]wireEntry{{ClientID: 11, Clock: 1, JSON: ok}})
 	if _, err := a.Apply(okBlob, "remote"); err != nil {
-		t.Fatalf("Apply at-limit pathreadload err = %v, want nil", err)
+		t.Fatalf("Apply at-limit payload err = %v, want nil", err)
 	}
 	if _, present := a.States()[11]; !present {
 		t.Error("at-limit entry was dropped; want applied")

@@ -12,11 +12,11 @@ import (
 
 // syncFixture mirrors testdata/sync-fixtures.json (gen-sync.mjs).
 type syncFixture struct {
-	Description     string `json:"description"`
-	JSClientID      uint64 `json:"js_client_id"`
-	EnvelopeHex     string `json:"envelope_hex"`
-	MessageType     string `json:"message_type"`
-	PathreadloadHex string `json:"pathreadload_hex"`
+	Description string `json:"description"`
+	JSClientID  uint64 `json:"js_client_id"`
+	EnvelopeHex string `json:"envelope_hex"`
+	MessageType string `json:"message_type"`
+	PayloadHex  string `json:"payload_hex"`
 }
 
 func loadSyncFixtures(t *testing.T) []syncFixture {
@@ -46,7 +46,7 @@ func loadSyncFixtures(t *testing.T) []syncFixture {
 // TestFixtures_DecodeJSEnvelopes is the cross-language proof: every
 // envelope produced by y-protocols + Hocuspocus framing in
 // gen-sync.mjs must decode on the Go side into a Frame whose Type
-// + SyncSub + Pathreadload match the expected values.
+// + SyncSub + Payload match the expected values.
 func TestFixtures_DecodeJSEnvelopes(t *testing.T) {
 	fixtures := loadSyncFixtures(t)
 	if len(fixtures) == 0 {
@@ -60,9 +60,9 @@ func TestFixtures_DecodeJSEnvelopes(t *testing.T) {
 			if err != nil {
 				t.Fatalf("hex envelope: %v", err)
 			}
-			pathreadload, err := hex.DecodeString(fix.PathreadloadHex)
+			payload, err := hex.DecodeString(fix.PayloadHex)
 			if err != nil {
-				t.Fatalf("hex pathreadload: %v", err)
+				t.Fatalf("hex payload: %v", err)
 			}
 
 			frame, tail, err := syncpkg.DecodeEnvelope(envelope)
@@ -73,18 +73,18 @@ func TestFixtures_DecodeJSEnvelopes(t *testing.T) {
 				t.Errorf("tail = %x, want empty", tail)
 			}
 
-			wantType, wantSub, expectsPathreadload := parseMessageType(fix.MessageType)
+			wantType, wantSub, expectsPayload := parseMessageType(fix.MessageType)
 			if frame.Type != wantType {
 				t.Errorf("Type = %d, want %d (%s)", frame.Type, wantType, fix.MessageType)
 			}
 			if wantType == syncpkg.MessageSync && frame.SyncSub != wantSub {
 				t.Errorf("SyncSub = %d, want %d", frame.SyncSub, wantSub)
 			}
-			if expectsPathreadload && !bytes.Equal(frame.Pathreadload, pathreadload) {
-				t.Errorf("Pathreadload mismatch:\n got  %x\n want %x", frame.Pathreadload, pathreadload)
+			if expectsPayload && !bytes.Equal(frame.Payload, payload) {
+				t.Errorf("Payload mismatch:\n got  %x\n want %x", frame.Payload, payload)
 			}
-			if !expectsPathreadload && len(frame.Pathreadload) != 0 {
-				t.Errorf("Pathreadload = %x, want empty (message type carries no pathreadload)", frame.Pathreadload)
+			if !expectsPayload && len(frame.Payload) != 0 {
+				t.Errorf("Payload = %x, want empty (message type carries no payload)", frame.Payload)
 			}
 		})
 	}
@@ -92,7 +92,7 @@ func TestFixtures_DecodeJSEnvelopes(t *testing.T) {
 
 // TestFixtures_EncodeMatchesJSBytesForFixedTypes verifies the
 // reverse direction for envelope types that do NOT depend on
-// non-deterministic state — QueryAwareness (empty pathreadload) is the
+// non-deterministic state — QueryAwareness (empty payload) is the
 // safe case. Sync messages embed state-vector / update bytes whose
 // reproduction would require a parallel JS-doc setup; the decode
 // test above already proves the wire byte layout matches.

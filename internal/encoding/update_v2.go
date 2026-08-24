@@ -170,7 +170,7 @@ func encodeItemV2(enc *EncoderV2, it *block.Item) {
 	EncodeContentV2(enc, it.Content)
 }
 
-// EncodeContentV2 writes a Content pathreadload via the V2 column API.
+// EncodeContentV2 writes a Content payload via the V2 column API.
 // Mirrors EncodeContent (V1) but routes per the per-ContentKind
 // wire layout documented in yjs/src/structs/Content*.js.
 func EncodeContentV2(enc *EncoderV2, c block.Content) {
@@ -421,7 +421,7 @@ func decodeBlockV2(dec *DecoderV2, id block.ID) (Block, error) {
 	return Block{Kind: WireBlockItem, Item: it}, nil
 }
 
-// DecodeContentV2 reads a Content pathreadload from V2 column streams
+// DecodeContentV2 reads a Content payload from V2 column streams
 // given the content ref-number (low nibble of info byte). Mirror
 // of EncodeContentV2.
 func DecodeContentV2(dec *DecoderV2, refNum uint8) (block.Content, error) {

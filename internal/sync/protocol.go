@@ -37,12 +37,12 @@ type MessageType uint8
 
 const (
 	// MessageSync wraps a y-protocols/sync sub-message (SyncStep1 /
-	// SyncStep2 / SyncUpdate). Pathreadload layout:
-	//   varuint(SyncSubType) • varbuffer(pathreadload)
+	// SyncStep2 / SyncUpdate). Payload layout:
+	//   varuint(SyncSubType) • varbuffer(payload)
 	MessageSync MessageType = 0
 
 	// MessageAwareness wraps an awareness update blob — see
-	// internal/awareness for the inner wire format. Pathreadload layout:
+	// internal/awareness for the inner wire format. Payload layout:
 	//   varbuffer(awarenessUpdateBytes)
 	MessageAwareness MessageType = 1
 
@@ -53,7 +53,7 @@ const (
 
 	// MessageQueryAwareness is sent by a client (typically right
 	// after connect) to request the full current awareness snapshot.
-	// Pathreadload is empty. Server replies with a MessageAwareness frame
+	// Payload is empty. Server replies with a MessageAwareness frame
 	// containing every known client's state. Mandatory for
 	// Hocuspocus-client interop even when nothing else from
 	// Hocuspocus is implemented (port-note gotcha 1).
@@ -106,21 +106,21 @@ const (
 //
 //	varuint(MessageAuth)       outer tag = 2
 //	varuint(AuthSubType)       0=PermissionDenied, 1=Authenticated, 2=Token
-//	varstring(pathreadload)         reason | empty | token (per sub-type)
+//	varstring(payload)         reason | empty | token (per sub-type)
 type AuthSubType uint8
 
 const (
 	// AuthPermissionDenied is the server's "your token was
-	// rejected" response. Pathreadload is a varstring with a human-
+	// rejected" response. Payload is a varstring with a human-
 	// readable reason.
 	AuthPermissionDenied AuthSubType = 0
 
 	// AuthAuthenticated is the server's "your token was accepted"
-	// ack. Pathreadload is an empty varstring.
+	// ack. Payload is an empty varstring.
 	AuthAuthenticated AuthSubType = 1
 
 	// AuthToken is the client's "here is my token" handshake.
-	// Pathreadload is a varstring with the opaque token. The server's
+	// Payload is a varstring with the opaque token. The server's
 	// OnAuthenticate callback consumes this and returns nil
 	// (accept) or an error (deny — server replies with
 	// AuthPermissionDenied + MessageClose).

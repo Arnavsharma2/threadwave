@@ -55,7 +55,7 @@ func redoItem(txn *doc.TransactionMut, item *block.Item) *block.Item {
 		return nil
 	}
 
-	// Content kinds with pointer pathreadloads (nested type, move, doc) are
+	// Content kinds with pointer payloads (nested type, move, doc) are
 	// not faithfully restorable in the first cut.
 	if !item.Content.CopyableForUndo() {
 		return nil

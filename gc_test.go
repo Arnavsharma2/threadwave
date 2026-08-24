@@ -8,7 +8,7 @@ import (
 )
 
 // TestGC_FreesDeletedContent proves a default (GC-enabled) doc replaces
-// deleted item content with a deleted marker, so the pathreadload no longer
+// deleted item content with a deleted marker, so the payload no longer
 // rides on the wire, matching yjs's commit-time GC.
 func TestGC_FreesDeletedContent(t *testing.T) {
 	d := threadwave.NewDoc()

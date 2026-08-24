@@ -268,7 +268,7 @@ const (
 	// item; the value passed to fn is a string.
 	ChunkString ChunkKind = iota
 	// ChunkEmbed is a single embedded value from a KindEmbed item;
-	// the value passed to fn is whatever the embed pathreadload's runtime
+	// the value passed to fn is whatever the embed payload's runtime
 	// type is (typically map[string]any or a primitive Any).
 	ChunkEmbed
 )
@@ -280,7 +280,7 @@ const (
 // empty doc.
 //
 // Per docs/yrs-port-notes/types-text-rich.md §8 — companion to ToDelta.
-// Explicit ChunkKind discriminator means a string-typed embed pathreadload
+// Explicit ChunkKind discriminator means a string-typed embed payload
 // is not misidentified as a text chunk by callers that switch on
 // the runtime type of the value.
 func (t *Text) Range(fn func(kind ChunkKind, value any, attrs Attrs) bool) {

@@ -47,7 +47,7 @@ func TestEncodeDiff_SliceTrim_DropsFullyKnownClients(t *testing.T) {
 	if len(diff) >= len(full) {
 		t.Errorf("slice-trim ineffective: diff=%d bytes, full=%d bytes", len(diff), len(full))
 	}
-	// Diff should be roughly half-ish (5 ops vs 10), not the full pathreadload.
+	// Diff should be roughly half-ish (5 ops vs 10), not the full payload.
 	if float64(len(diff)) > 0.6*float64(len(full)) {
 		t.Errorf("slice-trim too weak: diff=%d bytes vs full=%d bytes; expected <60%% of full",
 			len(diff), len(full))

@@ -42,7 +42,7 @@ func TestServer_AwarenessCap_FloodDoesNotReachPeers(t *testing.T) {
 		if f.Type != syncpkg.MessageAwareness {
 			return false
 		}
-		if _, err := b.awareness.Apply(f.Pathreadload, "server"); err != nil {
+		if _, err := b.awareness.Apply(f.Payload, "server"); err != nil {
 			t.Fatal(err)
 		}
 		_, ok0 := b.awareness.States()[1000]
@@ -97,7 +97,7 @@ func TestServer_AwarenessSweep_EvictsSilentClient(t *testing.T) {
 	for i := 0; i < 5 && !sawA; i++ {
 		f := b.read(t)
 		if f.Type == syncpkg.MessageAwareness {
-			if _, err := b.awareness.Apply(f.Pathreadload, "server"); err != nil {
+			if _, err := b.awareness.Apply(f.Payload, "server"); err != nil {
 				t.Fatal(err)
 			}
 			_, sawA = b.awareness.States()[300]
@@ -113,7 +113,7 @@ func TestServer_AwarenessSweep_EvictsSilentClient(t *testing.T) {
 		if f.Type != syncpkg.MessageAwareness {
 			return false
 		}
-		if _, err := b.awareness.Apply(f.Pathreadload, "server"); err != nil {
+		if _, err := b.awareness.Apply(f.Payload, "server"); err != nil {
 			t.Fatal(err)
 		}
 		_, present := b.awareness.States()[300]

@@ -162,7 +162,7 @@ func TestServer_TwoClients_SyncUpdateBroadcast(t *testing.T) {
 	step2 := b.readUntil(t, func(f *syncpkg.Frame) bool {
 		return f.Type == syncpkg.MessageSync && f.SyncSub == syncpkg.SyncStep2
 	})
-	if err := encoding.ApplyUpdate(b.doc, step2.Pathreadload); err != nil {
+	if err := encoding.ApplyUpdate(b.doc, step2.Payload); err != nil {
 		t.Fatal(err)
 	}
 
@@ -199,7 +199,7 @@ func TestServer_Awareness_BroadcastBetweenClients(t *testing.T) {
 	for i := 0; i < 5 && !sawA; i++ {
 		f := b.read(t)
 		if f.Type == syncpkg.MessageAwareness {
-			summary, err := b.awareness.Apply(f.Pathreadload, "server")
+			summary, err := b.awareness.Apply(f.Payload, "server")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -269,7 +269,7 @@ func TestServer_Persistence_StateSurvivesRestart(t *testing.T) {
 	step2 := b.readUntil(t, func(f *syncpkg.Frame) bool {
 		return f.Type == syncpkg.MessageSync && f.SyncSub == syncpkg.SyncStep2
 	})
-	if err := encoding.ApplyUpdate(b.doc, step2.Pathreadload); err != nil {
+	if err := encoding.ApplyUpdate(b.doc, step2.Payload); err != nil {
 		t.Fatal(err)
 	}
 	arrB := types.NewArray(b.doc.Branch("items"))
@@ -388,7 +388,7 @@ func TestServer_ConcurrentEdits_AllConverge(t *testing.T) {
 			}
 			if frame.Type == syncpkg.MessageSync &&
 				(frame.SyncSub == syncpkg.SyncStep2 || frame.SyncSub == syncpkg.SyncUpdate) {
-				_ = encoding.ApplyUpdate(c.doc, frame.Pathreadload)
+				_ = encoding.ApplyUpdate(c.doc, frame.Payload)
 			}
 		}
 		if arr.Len() < clients*perClient {
@@ -475,8 +475,8 @@ func TestServer_HocusStateless_BroadcastsAcrossClients(t *testing.T) {
 	var serverSeen []string
 	wsURL, _ := startTestServer(t, server.Options{
 		OriginPatterns: []string{"*"},
-		OnStateless: func(_, pathreadload string) {
-			serverSeen = append(serverSeen, pathreadload)
+		OnStateless: func(_, payload string) {
+			serverSeen = append(serverSeen, payload)
 		},
 	})
 
@@ -494,8 +494,8 @@ func TestServer_HocusStateless_BroadcastsAcrossClients(t *testing.T) {
 		got := c.readUntil(t, func(f *syncpkg.Frame) bool {
 			return f.Type == syncpkg.MessageBroadcastStateless
 		})
-		if string(got.Pathreadload) != "ping-1" {
-			t.Errorf("%s received %q, want ping-1", label, got.Pathreadload)
+		if string(got.Payload) != "ping-1" {
+			t.Errorf("%s received %q, want ping-1", label, got.Payload)
 		}
 	}
 

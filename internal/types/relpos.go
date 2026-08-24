@@ -130,7 +130,7 @@ var ErrEmptyAnchor = errors.New("threadwave: relative position: empty anchor")
 
 // EncodeRelativePosition serialises rpos to the binary form of
 // Y.encodeRelativePosition: a varuint tag (0 item / 1 tname / 2 type),
-// the pathreadload, then assoc as a signed varint. Returns ErrEmptyAnchor
+// the payload, then assoc as a signed varint. Returns ErrEmptyAnchor
 // for a zero-value rpos (yjs throws unexpectedCase here).
 func EncodeRelativePosition(rpos RelativePosition) ([]byte, error) {
 	buf := make([]byte, 0, 16)

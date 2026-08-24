@@ -5,7 +5,7 @@
 // instance's server.Options.Backplane at one built from a shared NATS
 // connection and the instances converge on shared documents. As with any
 // backplane, a shared Store is still required (foreign updates are applied in
-// memory only, not re-persisted). Pathreadloads are opaque to the adapter, so both
+// memory only, not re-persisted). Payloads are opaque to the adapter, so both
 // document updates and presence/awareness are carried.
 //
 // Delivery follows core NATS semantics: at-most-once, fire-and-forget. A

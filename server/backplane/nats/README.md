@@ -97,6 +97,6 @@ the connection (both caller-owned) intact.
   client actually holds the missing delta (the server does not re-request gaps).
   Where silent, persistent single-instance divergence on a dropped delta is
   unacceptable, use `NewJetStream` (at-least-once) instead of `New`.
-- **Presence/awareness IS carried.** Pathreadloads are opaque to the adapter, so the
+- **Presence/awareness IS carried.** Payloads are opaque to the adapter, so the
   server's presence updates relay across instances like document updates (this
   changed in threadwave v1.15.0; earlier the backplane carried documents only).

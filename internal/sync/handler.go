@@ -41,7 +41,7 @@ type AuthHandler func(docName, token string) error
 //
 // The handler runs synchronously on the read loop's goroutine —
 // long-running work should be dispatched elsewhere.
-type StatelessHandler func(docName, pathreadload string)
+type StatelessHandler func(docName, payload string)
 
 // Conn is the per-connection sync state machine. It owns no
 // transport — Send and Broadcast are caller-supplied. The package
@@ -160,7 +160,7 @@ func (c *Conn) SendInitialSync() error {
 
 // HandleFrame routes one decoded envelope through the state machine
 // per docs/yrs-port-notes/protocol-sync.md. Returns an error only
-// for genuine protocol violations (malformed pathreadload bytes);
+// for genuine protocol violations (malformed payload bytes);
 // unknown message types are silently ignored to preserve forward
 // compatibility with Hocuspocus extensions.
 func (c *Conn) HandleFrame(frame *Frame) error {
@@ -180,15 +180,15 @@ func (c *Conn) HandleFrame(frame *Frame) error {
 		return c.handleAuth(frame)
 	case MessageStateless:
 		if c.OnStateless != nil {
-			c.OnStateless(c.DocName, string(frame.Pathreadload))
+			c.OnStateless(c.DocName, string(frame.Payload))
 		}
 		return nil
 	case MessageBroadcastStateless:
 		if c.OnStateless != nil {
-			c.OnStateless(c.DocName, string(frame.Pathreadload))
+			c.OnStateless(c.DocName, string(frame.Payload))
 		}
 		// Fan out the same envelope so other conns receive it.
-		c.Broadcast(EncodeBroadcastStateless(string(frame.Pathreadload)))
+		c.Broadcast(EncodeBroadcastStateless(string(frame.Payload)))
 		return nil
 	case MessageClose:
 		// Client-initiated close announcement. We don't act on
@@ -215,7 +215,7 @@ func (c *Conn) handleAuth(frame *Frame) error {
 	if frame.AuthSub != AuthToken {
 		return nil
 	}
-	token := string(frame.Pathreadload)
+	token := string(frame.Payload)
 	if c.OnAuthenticate == nil {
 		// No auth configured — accept silently. Sending
 		// Authenticated lets Hocuspocus clients flip their
@@ -239,7 +239,7 @@ func (c *Conn) handleSync(frame *Frame) error {
 	case SyncStep1:
 		// Peer wants our diff against their state vector. Reply
 		// with SyncStep2 carrying everything they're missing.
-		remoteSV, _, err := encoding.DecodeStateVector(frame.Pathreadload)
+		remoteSV, _, err := encoding.DecodeStateVector(frame.Payload)
 		if err != nil {
 			return fmt.Errorf("decode SyncStep1 SV: %w", err)
 		}
@@ -261,13 +261,13 @@ func (c *Conn) handleSync(frame *Frame) error {
 		// broadcast as a SyncUpdate to all peers including self.
 		// Self-echo is safe because V1 updates are idempotent — see
 		// port-note gotcha 6.
-		if err := encoding.ApplyUpdate(c.Doc, frame.Pathreadload); err != nil {
+		if err := encoding.ApplyUpdate(c.Doc, frame.Payload); err != nil {
 			return fmt.Errorf("apply Sync%s update: %w", subTypeName(frame.SyncSub), err)
 		}
 		// Re-encode as SyncUpdate (regardless of inbound sub-type)
 		// because the fan-out semantics on receivers are identical
 		// and using a single sub-type simplifies their dispatcher.
-		c.Broadcast(EncodeSyncUpdate(frame.Pathreadload))
+		c.Broadcast(EncodeSyncUpdate(frame.Payload))
 		return nil
 
 	default:
@@ -276,7 +276,7 @@ func (c *Conn) handleSync(frame *Frame) error {
 }
 
 func (c *Conn) handleAwareness(frame *Frame) error {
-	summary, err := c.Awareness.Apply(frame.Pathreadload, c.ID)
+	summary, err := c.Awareness.Apply(frame.Payload, c.ID)
 	if err != nil {
 		return fmt.Errorf("apply awareness: %w", err)
 	}
@@ -299,7 +299,7 @@ func (c *Conn) handleAwareness(frame *Frame) error {
 	c.muClients.Unlock()
 
 	// Broadcast only the entries this server actually accepted, re-
-	// encoded from current state — NOT the raw inbound pathreadload. This
+	// encoded from current state — NOT the raw inbound payload. This
 	// is what makes the per-room client cap effective: an entry the
 	// cap dropped never enters our map, so Encode omits it and the
 	// flood does not propagate to peers (which run cap-less vanilla

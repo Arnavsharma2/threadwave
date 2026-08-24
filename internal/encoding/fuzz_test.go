@@ -159,7 +159,7 @@ func FuzzDecodeStateVector(f *testing.F) {
 }
 
 // FuzzDecodeAny feeds arbitrary bytes to the lib0-Any value decoder.
-// Any pathreadloads carry attacker-controlled length prefixes (strings,
+// Any payloads carry attacker-controlled length prefixes (strings,
 // byte buffers, and recursive array/object counts), so this guards the
 // amplification surface directly instead of only through a full update.
 // No panic, hang, or OOM; an error is the expected outcome for
@@ -212,7 +212,7 @@ func FuzzDecodeIdSet(f *testing.F) {
 }
 
 // validV2Update builds a real V2 update from a populated doc so the
-// seed corpus contains a fully-formed multi-column pathreadload.
+// seed corpus contains a fully-formed multi-column payload.
 func validV2Update() []byte {
 	d := doc.NewDocWithOptions(doc.Options{ClientID: 7})
 	m := types.NewMap(d.Branch("settings"))

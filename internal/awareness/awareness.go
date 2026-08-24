@@ -11,7 +11,7 @@
 // JS in ways that affect Go translation choices. See
 // docs/yrs-port-notes/awareness.md for the full reference.
 //
-// State pathreadloads on the wire are raw JSON strings, NOT lib0 Any
+// State payloads on the wire are raw JSON strings, NOT lib0 Any
 // TLV. Awareness stores them as opaque []byte and only invokes
 // encoding/json at the typed-helper boundary
 // (SetLocalStateJSON / DecodeStateJSON). This matches yrs's
@@ -59,7 +59,7 @@ type ClientState struct {
 	Data        []byte
 }
 
-// Summary is the event pathreadload describing which clients were
+// Summary is the event payload describing which clients were
 // affected by a single Apply call or local mutation. Field
 // semantics match y-protocols/awareness.js:
 //
@@ -451,16 +451,16 @@ func (a *Awareness) Encode(clientIDs []uint64) []byte {
 		if !ok {
 			continue
 		}
-		var pathreadload []byte
+		var payload []byte
 		if s.Data == nil {
-			pathreadload = []byte(NullStateJSON)
+			payload = []byte(NullStateJSON)
 		} else {
-			pathreadload = s.Data
+			payload = s.Data
 		}
 		entries = append(entries, wireEntry{
 			ClientID: id,
 			Clock:    s.Clock,
-			JSON:     pathreadload,
+			JSON:     payload,
 		})
 	}
 	return encodeUpdate(entries)

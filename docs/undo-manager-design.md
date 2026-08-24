@@ -1,6 +1,6 @@
 # UndoManager design
 
-**Status: shipped (Map + Array + Text), 2026-06-08.** Sequence (Array/Text) resurrection, the top-level `threadwave.NewUndoManager` API, and cross-language conformance fixtures vs `yjs@13.6.31` (7 scenarios) are all in. Deferred to follow-ups: nested-type parent resurrection (recursive parent-redo), `Meta` selection pathreadload population, `ignoreRemoteMapChanges` corner cases, custom `deleteFilter` / `captureTransaction` callbacks.
+**Status: shipped (Map + Array + Text), 2026-06-08.** Sequence (Array/Text) resurrection, the top-level `threadwave.NewUndoManager` API, and cross-language conformance fixtures vs `yjs@13.6.31` (7 scenarios) are all in. Deferred to follow-ups: nested-type parent resurrection (recursive parent-redo), `Meta` selection payload population, `ignoreRemoteMapChanges` corner cases, custom `deleteFilter` / `captureTransaction` callbacks.
 
 Design notes for `internal/undo`. Mirrors the upstream `yjs@13.6.x` UndoManager semantics, and uses the existing `internal/encoding.IdSet` as the underlying DeleteSet primitive.
 

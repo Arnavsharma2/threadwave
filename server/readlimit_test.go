@@ -57,7 +57,7 @@ func TestServer_ReadLimit_AllowsLargeDoc(t *testing.T) {
 		if f.Type != syncpkg.MessageSync || f.SyncSub != syncpkg.SyncUpdate {
 			return false
 		}
-		if err := encoding.ApplyUpdate(b.doc, f.Pathreadload); err != nil {
+		if err := encoding.ApplyUpdate(b.doc, f.Payload); err != nil {
 			t.Fatalf("apply update: %v", err)
 		}
 		got, _ := types.NewMap(b.doc.Branch("doc")).Get("blob").(string)

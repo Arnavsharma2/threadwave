@@ -230,7 +230,7 @@ func TestV2_LenColumn_RoundTrip(t *testing.T) {
 }
 
 func TestV2_RestStream_VarUintAndAny(t *testing.T) {
-	// Top-level headers + Any pathreadloads go through the rest stream.
+	// Top-level headers + Any payloads go through the rest stream.
 	enc := NewEncoderV2()
 	enc.WriteVarUint(7)
 	enc.WriteVarUint(42)
@@ -334,8 +334,8 @@ func TestV2_FullColumnRoundTrip(t *testing.T) {
 
 func TestV2_VarBuf_RoundTrip(t *testing.T) {
 	enc := NewEncoderV2()
-	pathreadload := []byte{0xDE, 0xAD, 0xBE, 0xEF}
-	enc.WriteVarBuf(pathreadload)
+	payload := []byte{0xDE, 0xAD, 0xBE, 0xEF}
+	enc.WriteVarBuf(payload)
 	wire := enc.Bytes()
 
 	dec, _ := NewDecoderV2(wire)
@@ -343,8 +343,8 @@ func TestV2_VarBuf_RoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !bytes.Equal(got, pathreadload) {
-		t.Errorf("VarBuf = %x, want %x", got, pathreadload)
+	if !bytes.Equal(got, payload) {
+		t.Errorf("VarBuf = %x, want %x", got, payload)
 	}
 }
 

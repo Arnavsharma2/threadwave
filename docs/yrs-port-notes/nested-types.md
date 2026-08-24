@@ -2,7 +2,7 @@
 
 > Sources: yrs (main HEAD) — `yrs/src/block.rs` (`Item::repair`, `ItemContent::Type`), `yrs/src/types/mod.rs` (`TypeRef` + `TYPE_REFS_*`), `yrs/src/store.rs` (`Store::get_type` / `Store::get_or_create_type`), `yrs/src/types/map.rs` (`MapPrelim`, `Map::insert`). JS upstream — `yjs/src/structs/Item.js` (`ContentType`, `Y*RefID`), `yjs/src/ytype.js` (`YType._write`, `readYType`, `readContentType`), `yjs/src/utils/UpdateEncoder.js` + `UpdateDecoder.js` (`writeTypeRef`/`readTypeRef`). Line numbers below are accurate at fetch time.
 
-Nested types are how a Y.Map can hold another Y.Map under a key and how a Y.Array can hold a Y.Array as an element — the same mechanism XmlFragment/XmlElement/XmlText use. Wire-format-wise the trick is a single Item content variant — `ContentType` (refID `7`, our `KindType = 7`) — whose pathreadload is a fresh `Branch` carrying a varuint `TypeRef` discriminator that names the sub-type (Map=1, Array=0, Text=2, …). Items inside the nested type point at this owning Item via `Parent = TypePtr::ID(parentItemID)`; `Item::repair` walks that ID back to the parent and lifts the Branch out of its Content so YATA integration runs normally. Nested types are the gateway to XML, which is the gateway to ProseMirror/Tiptap — without them threadwave cannot back any rich-text editor. We already have the substrate (Branch struct, `KindType = 7`); the gap is four pieces: a `TypeRef` field on Branch, the `ContentType` wire codec, the `ParentID` arm in `Repair`, and `Map.SetMap` / `Array.InsertMap` API.
+Nested types are how a Y.Map can hold another Y.Map under a key and how a Y.Array can hold a Y.Array as an element — the same mechanism XmlFragment/XmlElement/XmlText use. Wire-format-wise the trick is a single Item content variant — `ContentType` (refID `7`, our `KindType = 7`) — whose payload is a fresh `Branch` carrying a varuint `TypeRef` discriminator that names the sub-type (Map=1, Array=0, Text=2, …). Items inside the nested type point at this owning Item via `Parent = TypePtr::ID(parentItemID)`; `Item::repair` walks that ID back to the parent and lifts the Branch out of its Content so YATA integration runs normally. Nested types are the gateway to XML, which is the gateway to ProseMirror/Tiptap — without them threadwave cannot back any rich-text editor. We already have the substrate (Branch struct, `KindType = 7`); the gap is four pieces: a `TypeRef` field on Branch, the `ContentType` wire codec, the `ParentID` arm in `Repair`, and `Map.SetMap` / `Array.InsertMap` API.
 
 ---
 
@@ -96,9 +96,9 @@ type Branch struct {
 }
 ```
 
-**Zero value collides with `TypeRefArray = 0`.** Use `TypeRefUndefined = 15` as the explicit "unset" sentinel — matches yrs's `TypeRef::Undefined` which `Store::get_or_create_type` writes when a root is looked up before its real type is known (`store.rs:119-133`, `Entry::Occupied` arm calling `repair_type_ref(type_ref)` on first typed access). Root branches created via `Doc.Map(name)` / `Doc.Array(name)` MUST set `TypeRef` at construction; nested branches created inside `ContentType` pathreadloads MUST set `TypeRef` from the wire. Repair-time fixup (yrs `repair_type_ref`) is only needed if a root is referenced by `ParentNamed` before its typed `doc.GetOrCreateType` call lands — defer until that wiring exists.
+**Zero value collides with `TypeRefArray = 0`.** Use `TypeRefUndefined = 15` as the explicit "unset" sentinel — matches yrs's `TypeRef::Undefined` which `Store::get_or_create_type` writes when a root is looked up before its real type is known (`store.rs:119-133`, `Entry::Occupied` arm calling `repair_type_ref(type_ref)` on first typed access). Root branches created via `Doc.Map(name)` / `Doc.Array(name)` MUST set `TypeRef` at construction; nested branches created inside `ContentType` payloads MUST set `TypeRef` from the wire. Repair-time fixup (yrs `repair_type_ref`) is only needed if a root is referenced by `ParentNamed` before its typed `doc.GetOrCreateType` call lands — defer until that wiring exists.
 
-Root branches do NOT emit `TypeRef` on the wire; only nested branches embedded in `ContentType` pathreadloads do. Receivers learn the TypeRef of a root only on first observation of a `ContentType` Item parented to that root — or never, which is fine because both peers independently called `doc.Map(name)` with matching expectations.
+Root branches do NOT emit `TypeRef` on the wire; only nested branches embedded in `ContentType` payloads do. Receivers learn the TypeRef of a root only on first observation of a `ContentType` Item parented to that root — or never, which is fine because both peers independently called `doc.Map(name)` with matching expectations.
 
 ---
 
@@ -199,7 +199,7 @@ Each one resolves Left/Right by walking the branch list, allocates the inner Bra
 
 ## §7 Reading nested values
 
-`Map.Get(key) (any, bool)` and `Array.Get(idx) (any, bool)` must discriminate at the `Content.Kind` level. Today's `Map.Get` calls `item.Content.GetLast()` which returns the last element of the content slice; for `KindType` `GetLast` is undefined — the Branch is the whole pathreadload.
+`Map.Get(key) (any, bool)` and `Array.Get(idx) (any, bool)` must discriminate at the `Content.Kind` level. Today's `Map.Get` calls `item.Content.GetLast()` which returns the last element of the content slice; for `KindType` `GetLast` is undefined — the Branch is the whole payload.
 
 Shared helper:
 
@@ -236,7 +236,7 @@ Wrappers are stateless pointer-wrappers over `*Branch`, constructed fresh per Ge
 
 4. **yrs's `TypePtr` has a `Branch(BranchPtr)` variant — the post-Repair representation.** Our `Parent.Kind == ParentBranch` corresponds to it. Do not confuse `TypePtr::Branch` (resolved) with `TypePtr::ID` (pre-Repair) when reading yrs source. Once `Repair` succeeds, `it.Parent.Kind` is always `ParentBranch` regardless of which arm fired — never inspect `Parent.ID` / `Parent.Named` after Repair returns ok.
 
-5. **The TypeRef varuint goes INSIDE the ContentType pathreadload, not in the Item info byte.** Item info-byte low-4-bits = `7` (content ref). The TypeRef varuint follows the standard Item header (ID, origin, rightOrigin, parent, parentSub, length) as part of the content pathreadload (`YType._write`, `ytype.js:1474-1484`). Misplacing it breaks wire compat with both Yjs and yrs receivers.
+5. **The TypeRef varuint goes INSIDE the ContentType payload, not in the Item info byte.** Item info-byte low-4-bits = `7` (content ref). The TypeRef varuint follows the standard Item header (ID, origin, rightOrigin, parent, parentSub, length) as part of the content payload (`YType._write`, `ytype.js:1474-1484`). Misplacing it breaks wire compat with both Yjs and yrs receivers.
 
 6. **`ParentSub` of nested-Map children is the INNER key.** A child Item added via `nested.Set("inner_key", v)` has `Parent = ID(outerItem.ID)` AND `ParentSub = "inner_key"` — never the outer key. The outer key only lives on the containing `ContentType` Item. When `Repair` resolves `ParentID` it must NOT overwrite the child's `ParentSub` — yrs only inherits ParentSub in the `Unknown` arm (`block.rs:1381-1413`). Today's `repair.go:46-54` is correct on this; preserve the behaviour when adding the `ParentID` arm.
 

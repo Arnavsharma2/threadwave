@@ -47,7 +47,7 @@ func benchDial(b *testing.B, wsURL, docName string) *websocket.Conn {
 // update through a room of N connections: the sender writes a fixed
 // SyncUpdate and reads its own broadcast echo while N-1 idle peers drain
 // their copies. ns/op grows with the fan-out width, isolating the
-// server's apply + fan-out cost from client-side encoding (the pathreadload is
+// server's apply + fan-out cost from client-side encoding (the payload is
 // pre-built and constant).
 func BenchmarkServer_BroadcastFanout(b *testing.B) {
 	// Fixed small update: one array item.

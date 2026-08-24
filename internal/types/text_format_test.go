@@ -121,7 +121,7 @@ func TestText_InsertEmbed_AppearsInDelta(t *testing.T) {
 	wtxn.Commit()
 
 	wtxn = d.WriteTxn()
-	embedVal := "embed-pathreadload"
+	embedVal := "embed-payload"
 	if err := tx.InsertEmbed(wtxn, 6, embedVal); err != nil {
 		t.Fatal(err)
 	}

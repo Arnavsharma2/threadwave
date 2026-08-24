@@ -24,22 +24,22 @@ type Frame struct {
 	// AuthSub is set only when Type == MessageAuth.
 	AuthSub AuthSubType
 
-	// Pathreadload is the post-discriminator bytes:
+	// Payload is the post-discriminator bytes:
 	//   MessageSync          → the inner update or state vector bytes
 	//                          (already unwrapped from varbuffer)
 	//   MessageAwareness     → awareness update bytes
 	//                          (already unwrapped from varbuffer)
-	//   MessageQueryAwareness→ nil (no pathreadload)
+	//   MessageQueryAwareness→ nil (no payload)
 	//   MessageAuth          → token (AuthToken sub) or reason
 	//                          (AuthPermissionDenied) — string bytes
-	//   MessageStateless     → the stateless pathreadload string bytes
+	//   MessageStateless     → the stateless payload string bytes
 	//   MessageBroadcastStateless → same
 	//   MessageClose         → close reason string bytes
 	//   MessageSyncStatus    → single byte 0x00 or 0x01
 	//   MessagePing/Pong     → nil
 	//   other                → the raw remaining envelope bytes,
 	//                          left opaque for caller-defined handling
-	Pathreadload []byte
+	Payload []byte
 }
 
 // ErrTruncated wraps a decode failure where the envelope ended
@@ -102,7 +102,7 @@ func EncodeAwareness(awarenessUpdate []byte) []byte {
 	return buf
 }
 
-// EncodeQueryAwareness builds an empty-pathreadload QueryAwareness
+// EncodeQueryAwareness builds an empty-payload QueryAwareness
 // envelope — the client's request for the current full awareness
 // snapshot. Server replies with an EncodeAwareness frame covering
 // every known client.
@@ -148,19 +148,19 @@ func EncodeAuthPermissionDenied(reason string) []byte {
 }
 
 // EncodeStateless builds a MessageStateless envelope carrying an
-// opaque string pathreadload. Routed to the recipient's OnStateless
+// opaque string payload. Routed to the recipient's OnStateless
 // callback (single-conn delivery).
-func EncodeStateless(pathreadload string) []byte {
+func EncodeStateless(payload string) []byte {
 	buf := lib0.WriteVarUint(nil, uint64(MessageStateless))
-	return lib0.WriteVarString(buf, pathreadload)
+	return lib0.WriteVarString(buf, payload)
 }
 
 // EncodeBroadcastStateless builds a MessageBroadcastStateless
-// envelope. Same pathreadload as EncodeStateless but the recipient
+// envelope. Same payload as EncodeStateless but the recipient
 // fans out to every connection on the doc.
-func EncodeBroadcastStateless(pathreadload string) []byte {
+func EncodeBroadcastStateless(payload string) []byte {
 	buf := lib0.WriteVarUint(nil, uint64(MessageBroadcastStateless))
-	return lib0.WriteVarString(buf, pathreadload)
+	return lib0.WriteVarString(buf, payload)
 }
 
 // EncodeClose builds a MessageClose envelope with a reason
@@ -172,7 +172,7 @@ func EncodeClose(reason string) []byte {
 }
 
 // EncodeSyncStatus builds a MessageSyncStatus envelope. The
-// pathreadload is a single byte: 0x00 = not synced, 0x01 = synced.
+// payload is a single byte: 0x00 = not synced, 0x01 = synced.
 // Servers emit 0x01 after the initial SyncStep1/SyncStep2 round
 // completes so clients can flip a "ready" UI state.
 func EncodeSyncStatus(synced bool) []byte {
@@ -218,25 +218,25 @@ func DecodeEnvelope(b []byte) (*Frame, []byte, error) {
 		default:
 			return nil, b, fmt.Errorf("%w: %d", ErrUnknownSyncSubType, subU)
 		}
-		pathreadload, n, err := lib0.ReadVarUint8Array(b)
+		payload, n, err := lib0.ReadVarUint8Array(b)
 		if err != nil {
-			return nil, b, fmt.Errorf("decode sync pathreadload: %w", err)
+			return nil, b, fmt.Errorf("decode sync payload: %w", err)
 		}
-		// Copy the pathreadload so the caller can keep the Frame past
+		// Copy the payload so the caller can keep the Frame past
 		// the next Read call's buffer reuse.
-		frame.Pathreadload = append([]byte(nil), pathreadload...)
+		frame.Payload = append([]byte(nil), payload...)
 		return frame, b[n:], nil
 
 	case MessageAwareness:
-		pathreadload, n, err := lib0.ReadVarUint8Array(b)
+		payload, n, err := lib0.ReadVarUint8Array(b)
 		if err != nil {
-			return nil, b, fmt.Errorf("decode awareness pathreadload: %w", err)
+			return nil, b, fmt.Errorf("decode awareness payload: %w", err)
 		}
-		frame.Pathreadload = append([]byte(nil), pathreadload...)
+		frame.Payload = append([]byte(nil), payload...)
 		return frame, b[n:], nil
 
 	case MessageQueryAwareness, MessagePing, MessagePong:
-		// Empty pathreadload — no further bytes consumed.
+		// Empty payload — no further bytes consumed.
 		return frame, b, nil
 
 	case MessageAuth:
@@ -246,37 +246,37 @@ func DecodeEnvelope(b []byte) (*Frame, []byte, error) {
 		}
 		b = b[n:]
 		frame.AuthSub = AuthSubType(subU)
-		// Every Auth sub-type carries a varstring pathreadload
+		// Every Auth sub-type carries a varstring payload
 		// (PermissionDenied = reason, Authenticated = empty,
 		// Token = token bytes).
-		pathreadload, n, err := lib0.ReadVarString(b)
+		payload, n, err := lib0.ReadVarString(b)
 		if err != nil {
-			return nil, b, fmt.Errorf("decode auth pathreadload: %w", err)
+			return nil, b, fmt.Errorf("decode auth payload: %w", err)
 		}
-		frame.Pathreadload = []byte(pathreadload)
+		frame.Payload = []byte(payload)
 		return frame, b[n:], nil
 
 	case MessageStateless, MessageBroadcastStateless, MessageClose:
-		pathreadload, n, err := lib0.ReadVarString(b)
+		payload, n, err := lib0.ReadVarString(b)
 		if err != nil {
-			return nil, b, fmt.Errorf("decode %d pathreadload: %w", mt, err)
+			return nil, b, fmt.Errorf("decode %d payload: %w", mt, err)
 		}
-		frame.Pathreadload = []byte(pathreadload)
+		frame.Payload = []byte(payload)
 		return frame, b[n:], nil
 
 	case MessageSyncStatus:
-		// Single-byte pathreadload: synced flag.
+		// Single-byte payload: synced flag.
 		if len(b) < 1 {
 			return nil, b, fmt.Errorf("%w: SyncStatus needs 1 byte", ErrTruncated)
 		}
-		frame.Pathreadload = []byte{b[0]}
+		frame.Payload = []byte{b[0]}
 		return frame, b[1:], nil
 
 	default:
 		// Unknown / not-yet-implemented type. Stash remaining bytes
 		// opaquely; caller can forward to OnUnknownMessage hook or
 		// drop. No further decoding here.
-		frame.Pathreadload = append([]byte(nil), b...)
+		frame.Payload = append([]byte(nil), b...)
 		return frame, nil, nil
 	}
 }

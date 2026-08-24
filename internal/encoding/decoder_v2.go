@@ -265,7 +265,7 @@ func (d *DecoderV2) ReadKey() (string, error) {
 	return s, nil
 }
 
-// ReadJSON consumes the next JSON-encoded pathreadload (varstring) from
+// ReadJSON consumes the next JSON-encoded payload (varstring) from
 // the rest stream and JSON-unmarshals it. Used by ContentFormat /
 // ContentEmbed (mirrors V1 readJSON path).
 func (d *DecoderV2) ReadJSON() (block.Any, error) {

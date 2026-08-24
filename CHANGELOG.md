@@ -45,7 +45,7 @@ ignore rules.
 Cross-cluster presence.
 
 **Upgrade impact** — affects only deployments that configure a `Backplane`
-(multi-instance clustering). Backplane pathreadloads are now framed with a one-byte
+(multi-instance clustering). Backplane payloads are now framed with a one-byte
 kind prefix (0 = document update, 1 = presence update) instead of the bare V1
 update bytes v1.14.0 published, and the framing is not version-negotiated. A
 mixed-version cluster sharing one broker misparses in both directions, so
@@ -74,7 +74,7 @@ servers (`Backplane` nil) and all non-server API are unaffected.
   published in BENCHMARKS.md.
 
 ### Changed
-- Backplane pathreadloads carry a one-byte kind prefix distinguishing document
+- Backplane payloads carry a one-byte kind prefix distinguishing document
   updates from presence (see Upgrade impact).
 
 ### Fixed
@@ -354,7 +354,7 @@ but an existing deployment behaves differently after upgrading.
 
 Also note that the new awareness decode caps are hard constants, not options:
 an update declaring more than 65536 entries, or carrying a single client state
-larger than 64 KiB, is now a decode error. If you put large pathreadloads into
+larger than 64 KiB, is now a decode error. If you put large payloads into
 awareness state, move them out of the presence channel before upgrading.
 
 ### Added
@@ -376,14 +376,14 @@ awareness state, move them out of the presence channel before upgrading.
 ### Security
 - The awareness decoder rejects length-prefix amplification before allocating:
   at most 65536 entries per update (`MaxUpdateEntries`) and 64 KiB of JSON
-  state per client (`MaxStatePathreadloadBytes`).
+  state per client (`MaxStatePayloadBytes`).
 - Every wire-supplied element count in the V1/V2 update, snapshot, id-set,
   state-vector, and `Any`-content decoders is bounded against the actual input
   length. A 9-byte update could previously force a multi-terabyte allocation;
   the bound never rejects a valid encoding (cross-language fixtures still
   pass).
 - The server re-broadcasts only the awareness entries it actually accepted,
-  re-encoded from its own state instead of relaying the raw inbound pathreadload, so
+  re-encoded from its own state instead of relaying the raw inbound payload, so
   entries dropped by the per-room cap never reach cap-less browser peers.
 
 ## [1.3.0] - 2026-06-15
@@ -490,7 +490,7 @@ option. From v1.0.0 every commit — including the commit that applies a remote
 or persisted update's delete set — irreversibly replaces the content of items
 tombstoned in that transaction with a same-length `ContentDeleted` marker on
 any document created with `threadwave.NewDoc()`. Two consequences: updates encoded
-from a default document no longer carry deleted pathreadloads, and loading a
+from a default document no longer carry deleted payloads, and loading a
 previously persisted document into a default document discards the deleted
 content it still held as soon as its delete set is applied. If you need history
 (snapshots, time-travel, or any read of deleted content), create the document
@@ -602,7 +602,7 @@ JetStream adapter for reliable cross-instance delivery.
 
 ### Changed
 - Adapter documentation corrected: presence/awareness *is* carried over the
-  backplane, since pathreadloads are opaque to the adapter.
+  backplane, since payloads are opaque to the adapter.
 
 ## [nats/0.1.0] - 2026-07-16
 
