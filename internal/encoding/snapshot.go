@@ -1,7 +1,7 @@
 package encoding
 
 import (
-	"sort"
+	"slices"
 
 	"github.com/Arnavsharma2/threadwave/internal/block"
 	"github.com/Arnavsharma2/threadwave/internal/lib0"
@@ -124,7 +124,8 @@ func EncodeSnapshotAsUpdateV1(bs *store.BlockStore, snap Snapshot) []byte {
 			clients = append(clients, c)
 		}
 	}
-	sort.Slice(clients, func(i, j int) bool { return clients[i] > clients[j] })
+	slices.Sort(clients)
+	slices.Reverse(clients)
 
 	var runs []run
 	for _, c := range clients {
