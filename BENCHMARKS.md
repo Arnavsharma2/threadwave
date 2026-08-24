@@ -5,6 +5,13 @@ Performance baseline for threadwave, ported from the canonical
 suite. Same benchmark IDs (B1.1, B1.2, ... B4) and same workload
 shapes so cross-implementation comparison stays apples-to-apples.
 
+> **Provenance:** Numerical baselines in this document were measured by the
+> upstream [Deln0r/ygo](https://github.com/Deln0r/ygo) project before the
+> Threadwave rebrand. They are preserved as a starting reference and have not
+> yet been independently rerun under the Threadwave name. New optimization
+> results should record the exact Threadwave commit, toolchain, hardware, and
+> benchmark command.
+
 ## Running
 
 ```

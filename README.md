@@ -234,7 +234,10 @@ If you have an existing Yjs deployment and want to move the server side to Go (n
 
 ## Benchmarks
 
-See [BENCHMARKS.md](BENCHMARKS.md) for the full table. Highlights from B4 (259,778-edit real-world LaTeX paper trace) on Apple M3, Go 1.26:
+See [BENCHMARKS.md](BENCHMARKS.md) for the full table and provenance. The
+inherited upstream baseline includes these B4 results for a 259,778-edit
+real-world LaTeX paper trace on Apple M3 with Go 1.26; Threadwave has not yet
+rerun them under its new identity:
 
 | Metric | Threadwave V1 | Threadwave V2 | yjs (Node, Intel i5-8400) | ywasm (Intel i5-8400) |
 |---|---|---|---|---|
