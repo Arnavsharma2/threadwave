@@ -1,7 +1,7 @@
 package encoding
 
 import (
-	"sort"
+	"slices"
 
 	"github.com/Arnavsharma2/threadwave/internal/lib0"
 	"github.com/Arnavsharma2/threadwave/internal/store"
@@ -20,16 +20,20 @@ import (
 // Mirrors yrs StateVector::encode (state_vector.rs ~line 80).
 func EncodeStateVector(sv store.StateVector, buf []byte) []byte {
 	clients := make([]uint64, 0, len(sv))
-	for c := range sv {
+	encodedLen := lib0.VarUintLen(uint64(len(sv)))
+	for c, clock := range sv {
 		clients = append(clients, c)
+		encodedLen += lib0.VarUintLen(c) + lib0.VarUintLen(clock)
 	}
 	// DESCENDING client order, matching yjs writeStateVector
 	// ("sort((a, b) => b[0] - a[0])"). Ascending was byte-incompatible
 	// with yjs for multi-client state vectors; single-client SVs (most
 	// existing fixtures) never exposed it. Surfaced by the multi-client
 	// snapshot fixture, 2026-06-08.
-	sort.Slice(clients, func(i, j int) bool { return clients[i] > clients[j] })
+	slices.Sort(clients)
+	slices.Reverse(clients)
 
+	buf = slices.Grow(buf, encodedLen)
 	buf = lib0.WriteVarUint(buf, uint64(len(clients)))
 	for _, c := range clients {
 		buf = lib0.WriteVarUint(buf, c)
