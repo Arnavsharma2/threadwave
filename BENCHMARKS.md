@@ -12,6 +12,28 @@ shapes so cross-implementation comparison stays apples-to-apples.
 > results should record the exact Threadwave commit, toolchain, hardware, and
 > benchmark command.
 
+## Threadwave optimization microbenchmarks
+
+Measured on Apple M3 Max with Go 1.27.0. Each figure is the approximate median
+of three runs with `-benchmem`; these focused microbenchmarks are committed with
+the code so future changes can rerun them.
+
+| Benchmark | Before | After | Allocation change |
+|---|---:|---:|---:|
+| Incremental diff lookup, middle of 65,536 cells | 16.9 µs | 12.5 ns | 0 → 0 |
+| Incremental diff lookup, last of 65,536 cells | 33.7 µs | 12.4 ns | 0 → 0 |
+| Encode 4,096-client state vector | 295 µs | 223 µs | 20 → 2 |
+| Encode 4,096-client delete set | 345 µs | 230 µs | 22 → 2 |
+| Encode 4,096-entry awareness update | 175 µs | 34.9 µs | 4,121 → 1 |
+| Decode 4,096-entry awareness update | 133 µs | 44.0 µs | 8,193 → 1 |
+
+The diff lookup improvement replaces O(n) scanning with the store's existing
+O(log n) pivot search. The awareness improvements also cut temporary bytes per
+operation from about 1.45 MB to 262 KB when encoding and from 688 KB to 164 KB
+when decoding. Binary sync-envelope encoding drops from two allocations to one;
+runtime at 4 KiB is dominated by the allocator and was noisy across runs, so no
+speedup percentage is claimed.
+
 ## Running
 
 ```

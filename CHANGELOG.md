@@ -24,6 +24,17 @@ Threadwave starts a new release history and does not reuse upstream tags.
 - Project maintenance, security reporting, CI links, and contribution guidance
   now point to the Threadwave repository.
 
+### Performance
+
+- Incremental V1/V2 diff encoding now binary-searches the first unknown client
+  cell instead of scanning from clock zero.
+- State-vector and delete-set encoders reserve their output buffers exactly and
+  use typed sorting.
+- Awareness encoding avoids per-client JSON string copies and reserves one
+  output buffer; decoding aliases input JSON until accepted state is copied.
+- Binary sync envelopes and in-memory backplane target snapshots reserve their
+  destination capacity up front.
+
 ### Removed
 
 - Inherited deployment-specific live-demo and mirror claims.
