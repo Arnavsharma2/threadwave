@@ -1,0 +1,50 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test artifacts
+*.test
+*.out
+coverage.txt
+coverage.html
+
+# Go workspace
+go.work
+go.work.sum
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Build output
+/bin/
+/dist/
+
+# Compiled command-line binaries built at repo root by `go build ./cmd/...`
+/ygo-server
+
+# Node fixture generator
+testdata/gen/node_modules/
+testdata/gen/package-lock.json
+
+# Generated fixtures kept in repo, but exclude WIP scratch
+testdata/scratch/
+
+# B4 real-world editing trace — 3.2 MB, fetched on demand via
+# testdata/gen/fetch-b4-trace.mjs. Too big for the repo; the
+# B4 benchmark skips gracefully when absent.
+testdata/b4-trace.json
+
+# Local build artifacts (go build ./cmd/...)
+/yserve
+/ygo-server
+/collab-server
+/collab-client
+/offline-first
+/yload

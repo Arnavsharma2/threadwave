@@ -1,0 +1,181 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: test (go ${{ matrix.go }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # go.mod's floor (1.25) and the current release. These are exactly the
+        # two Go releases upstream still supports, so the matrix covers our
+        # declared minimum and what a new adopter actually runs, with nothing
+        # in between to go stale.
+        go: ["1.25", "1.26"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: ${{ matrix.go }}
+      - name: go mod download
+        run: go mod download
+      - name: go vet
+        run: go vet ./...
+      - name: go test
+        run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+      - name: upload coverage
+        if: matrix.go == '1.26'
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage
+          path: coverage.txt
+
+  backplane-nats:
+    name: backplane-nats (nested module)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          # The NATS adapter is a separate opt-in module built outside the
+          # core matrix; it resolves the core via a local replace directive.
+          go-version: "1.26"
+      - name: test the NATS backplane adapter
+        working-directory: server/backplane/nats
+        run: |
+          go mod download
+          go vet ./...
+          go test -race ./...
+      - name: build against the pinned core (drop replace) to catch interface drift
+        working-directory: server/backplane/nats
+        run: |
+          # The tests above build through the local replace (HEAD). This step
+          # builds the adapter against the exact core version external users
+          # resolve (the `require`), so a Backplane-interface change at HEAD
+          # that outpaces the pin fails CI instead of an adopter's build.
+          go mod edit -dropreplace github.com/Deln0r/ygo
+          go mod tidy
+          go build ./...
+
+  cross-compile:
+    name: cross-compile (the targets the README claims)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: "1.26"
+      # Build-only, no tests: this job exists so the portability claim on the
+      # README cannot rot silently. Nothing else in CI cross-compiles, which is
+      # how the wasm caveat below went unnoticed until someone tried it by hand.
+      - name: whole module
+        run: |
+          for t in android/arm64 linux/arm64 windows/amd64 darwin/arm64 freebsd/amd64; do
+            echo "== $t"
+            GOOS=${t%/*} GOARCH=${t#*/} CGO_ENABLED=0 go build ./...
+          done
+      - name: library packages only
+        run: |
+          # On these targets the cmd/ binaries need external (cgo) linking, so
+          # only the importable packages are built - which is all an adopter
+          # consumes there anyway.
+          for t in ios/arm64 android/amd64; do
+            echo "== $t"
+            GOOS=${t%/*} GOARCH=${t#*/} CGO_ENABLED=0 go build . ./persist/... ./client ./server/... ./gomobile ./internal/...
+          done
+      - name: wasm, minus the SQLite store
+        run: |
+          # persist/sqlite is deliberately excluded: modernc.org/sqlite is
+          # transpiled C and modernc.org/libc has no wasm build. A browser
+          # adopter supplies its own persist.Store, so everything else must
+          # keep compiling for wasm.
+          for t in js/wasm wasip1/wasm; do
+            echo "== $t"
+            GOOS=${t%/*} GOARCH=${t#*/} CGO_ENABLED=0 go build . ./persist ./client ./server ./internal/...
+          done
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: "1.26"
+      - uses: golangci/golangci-lint-action@v7
+        with:
+          # Pinned (not "latest") so local installs of the same version
+          # produce identical results. Bump deliberately. See
+          # docs/tech-debt.md for the lint-not-enforced history.
+          version: v2.12.2
+
+  fixtures:
+    name: fixtures (cross-language)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: "1.26"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - name: install yjs and lib0
+        working-directory: testdata/gen
+        run: npm install
+      - name: regenerate lib0 fixtures
+        working-directory: testdata/gen
+        run: node gen-lib0.mjs
+      - name: regenerate yjs-update fixtures
+        working-directory: testdata/gen
+        run: node gen-yjs-update.mjs
+      - name: regenerate yjs-update V2 fixtures
+        working-directory: testdata/gen
+        run: node gen-yjs-update-v2.mjs
+      - name: regenerate awareness fixtures
+        working-directory: testdata/gen
+        run: node gen-awareness.mjs
+      - name: regenerate sync envelope fixtures
+        working-directory: testdata/gen
+        run: node gen-sync.mjs
+      - name: regenerate xml fixtures
+        working-directory: testdata/gen
+        run: node gen-xml.mjs
+      - name: regenerate RLE fixtures
+        working-directory: testdata/gen
+        run: node gen-rle.mjs
+      - name: regenerate undo fixtures
+        working-directory: testdata/gen
+        run: node gen-undo.mjs
+      - name: regenerate snapshot fixtures
+        working-directory: testdata/gen
+        run: node gen-snapshot.mjs
+      - name: regenerate subdoc fixtures
+        working-directory: testdata/gen
+        run: node gen-subdoc.mjs
+      - name: regenerate wire-edge fixtures
+        working-directory: testdata/gen
+        run: node gen-wire-edge.mjs
+      - name: regenerate reverse (Go encodes → JS decodes) fixtures
+        run: go run ./cmd/gen-go-fixtures
+      - name: verify no diff
+        run: git diff --exit-code testdata/
+      - name: run go tests against fixtures
+        run: |
+          go test ./internal/lib0/... -run TestFixtures
+          go test ./internal/encoding/... -run TestFixtures
+          go test ./internal/awareness/... -run TestFixtures
+          go test ./internal/sync/... -run TestFixtures
+          go test ./internal/types/... -run TestFixtures_DecodeApplyJSXmlUpdates
+          go test ./internal/undo/... -run TestUndoFixtures
+          go test ./internal/encoding/... -run TestSnapshotFixtures
+          go test . -run TestSubdoc_CrossLanguage
+          go test . -run TestWireEdge_CrossLanguage
+      - name: validate reverse fixtures (JS applies Go-encoded bytes)
+        working-directory: testdata/gen
+        run: node validate-go-fixtures.mjs
