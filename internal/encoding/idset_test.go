@@ -199,3 +199,15 @@ func collectRanges(s *IdSet, client uint64) []Range {
 	sort.Slice(out, func(i, j int) bool { return out[i].Start < out[j].Start })
 	return out
 }
+
+func BenchmarkIdSetEncode(b *testing.B) {
+	s := NewIdSet()
+	for client := uint64(0); client < 4096; client++ {
+		s.Insert(client, client*3, 2)
+	}
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = s.Encode(nil)
+	}
+}
