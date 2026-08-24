@@ -233,14 +233,10 @@ func encodeID(buf []byte, id block.ID) []byte {
 // Mirrors yrs IdSet::from_store (id_set.rs:432-448), simplified.
 func buildDeleteSetFromStore(bs *store.BlockStore, sv store.StateVector) *IdSet {
 	ds := NewIdSet()
-	// Iterate clients in deterministic ascending order; IdSet.Insert
-	// keeps per-client ranges sorted regardless.
-	clients := make([]uint64, 0, len(sv))
+	// IdSet.Encode performs the canonical client ordering. Building the set
+	// directly from the map avoids a redundant sort on every state encode;
+	// IdSet.Insert keeps each client's ranges ordered independently.
 	for c := range sv {
-		clients = append(clients, c)
-	}
-	slices.Sort(clients)
-	for _, c := range clients {
 		l := bs.GetClient(c)
 		if l == nil {
 			continue
