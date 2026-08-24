@@ -1,8 +1,8 @@
 package types
 
 import (
-	"github.com/Deln0r/ygo/internal/block"
-	"github.com/Deln0r/ygo/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/block"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
 )
 
 // Array is the user-facing wrapper around a positional Branch. The

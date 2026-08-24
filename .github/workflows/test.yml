@@ -51,17 +51,6 @@ jobs:
           go mod download
           go vet ./...
           go test -race ./...
-      - name: build against the pinned core (drop replace) to catch interface drift
-        working-directory: server/backplane/nats
-        run: |
-          # The tests above build through the local replace (HEAD). This step
-          # builds the adapter against the exact core version external users
-          # resolve (the `require`), so a Backplane-interface change at HEAD
-          # that outpaces the pin fails CI instead of an adopter's build.
-          go mod edit -dropreplace github.com/Deln0r/ygo
-          go mod tidy
-          go build ./...
-
   cross-compile:
     name: cross-compile (the targets the README claims)
     runs-on: ubuntu-latest

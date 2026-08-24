@@ -4,9 +4,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/internal/encoding"
-	"github.com/Deln0r/ygo/internal/types"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/encoding"
+	"github.com/Arnavsharma2/threadwave/internal/types"
 )
 
 func TestText_InsertWithAttributes_OpenAndClose(t *testing.T) {
@@ -121,7 +121,7 @@ func TestText_InsertEmbed_AppearsInDelta(t *testing.T) {
 	wtxn.Commit()
 
 	wtxn = d.WriteTxn()
-	embedVal := "embed-payload"
+	embedVal := "embed-pathreadload"
 	if err := tx.InsertEmbed(wtxn, 6, embedVal); err != nil {
 		t.Fatal(err)
 	}

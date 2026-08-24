@@ -1,9 +1,9 @@
-// Command collab-server is a runnable example of embedding the ygo
+// Command collab-server is a runnable example of embedding the threadwave
 // WebSocket sync server in your own Go backend and wiring its
 // library-only extension points: connection lifecycle hooks, read-only
 // viewers, an on-change side effect, first-load seeding, resource caps,
-// and a live stats endpoint. It is documentation, not a product — yserve
-// (cmd/yserve) is the batteries-included CLI server; this shows what the
+// and a live stats endpoint. It is documentation, not a product — threadserve
+// (cmd/threadserve) is the batteries-included CLI server; this shows what the
 // server package exposes to code that embeds it.
 //
 // Run:
@@ -30,10 +30,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Deln0r/ygo"
-	"github.com/Deln0r/ygo/persist"
-	"github.com/Deln0r/ygo/persist/sqlite"
-	"github.com/Deln0r/ygo/server"
+	"github.com/Arnavsharma2/threadwave"
+	"github.com/Arnavsharma2/threadwave/persist"
+	"github.com/Arnavsharma2/threadwave/persist/sqlite"
+	"github.com/Arnavsharma2/threadwave/server"
 )
 
 func main() {
@@ -133,10 +133,10 @@ func newServer(store persist.Store) (*server.Server, *http.ServeMux) {
 // document: one "Welcome" entry. The fixed ClientID keeps the seed's item
 // IDs stable across reloads, which OnLoadDocument requires.
 func buildWelcomeSeed() []byte {
-	d := ygo.NewDocWithOptions(ygo.Options{ClientID: 1})
-	arr := ygo.NewArray(d, "items")
+	d := threadwave.NewDocWithOptions(threadwave.Options{ClientID: 1})
+	arr := threadwave.NewArray(d, "items")
 	txn := d.WriteTxn()
 	arr.Push(txn, "Welcome")
 	txn.Commit()
-	return ygo.EncodeStateAsUpdate(d)
+	return threadwave.EncodeStateAsUpdate(d)
 }

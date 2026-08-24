@@ -3,7 +3,7 @@ package gomobile
 import (
 	"encoding/json"
 
-	"github.com/Deln0r/ygo/internal/types"
+	"github.com/Arnavsharma2/threadwave/internal/types"
 )
 
 // XmlFragment is the bindable root of an XML document tree — the shape

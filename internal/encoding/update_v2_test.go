@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/internal/types"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/types"
 )
 
 // TestEncodeStateAsUpdateV2_EmptyDoc verifies the empty-doc baseline.

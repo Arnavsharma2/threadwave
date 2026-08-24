@@ -5,11 +5,11 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Deln0r/ygo/internal/awareness"
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/internal/encoding"
-	syncpkg "github.com/Deln0r/ygo/internal/sync"
-	"github.com/Deln0r/ygo/internal/types"
+	"github.com/Arnavsharma2/threadwave/internal/awareness"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/encoding"
+	syncpkg "github.com/Arnavsharma2/threadwave/internal/sync"
+	"github.com/Arnavsharma2/threadwave/internal/types"
 )
 
 // memTransport collects Sent and Broadcast envelopes in memory for
@@ -173,7 +173,7 @@ func TestHandler_SyncStep1_RepliesWithSyncStep2(t *testing.T) {
 	// Apply the reply to a fresh target — should converge on the
 	// same map state.
 	target := doc.NewDoc()
-	if err := encoding.ApplyUpdate(target, reply.Payload); err != nil {
+	if err := encoding.ApplyUpdate(target, reply.Pathreadload); err != nil {
 		t.Fatal(err)
 	}
 	tm := types.NewMap(target.Branch("settings"))
@@ -206,7 +206,7 @@ func TestHandler_SyncUpdate_AppliesAndBroadcasts(t *testing.T) {
 		t.Errorf("Len = %d, want 1", larr.Len())
 	}
 
-	// Broadcast: one envelope, identical sync-update payload re-wrapped.
+	// Broadcast: one envelope, identical sync-update pathreadload re-wrapped.
 	if len(tr.Broadcast) != 1 {
 		t.Fatalf("Broadcast count = %d, want 1", len(tr.Broadcast))
 	}
@@ -214,8 +214,8 @@ func TestHandler_SyncUpdate_AppliesAndBroadcasts(t *testing.T) {
 	if rebroadcast.Type != syncpkg.MessageSync || rebroadcast.SyncSub != syncpkg.SyncUpdate {
 		t.Errorf("rebroadcast type/sub mismatch")
 	}
-	if !bytes.Equal(rebroadcast.Payload, update) {
-		t.Errorf("rebroadcast payload mismatch")
+	if !bytes.Equal(rebroadcast.Pathreadload, update) {
+		t.Errorf("rebroadcast pathreadload mismatch")
 	}
 }
 
@@ -251,7 +251,7 @@ func TestHandler_Awareness_AppliesAndTracksControlled(t *testing.T) {
 		t.Fatalf("Broadcast count = %d, want 1", len(tr.Broadcast))
 	}
 	rebroadcast := decodeOrFail(t, tr.Broadcast[0])
-	if rebroadcast.Type != syncpkg.MessageAwareness || !bytes.Equal(rebroadcast.Payload, remoteUpdate) {
+	if rebroadcast.Type != syncpkg.MessageAwareness || !bytes.Equal(rebroadcast.Pathreadload, remoteUpdate) {
 		t.Errorf("rebroadcast mismatch")
 	}
 }
@@ -283,7 +283,7 @@ func TestHandler_QueryAwareness_RepliesWithSnapshot(t *testing.T) {
 	// Apply the snapshot to a fresh awareness and confirm both
 	// clients are present.
 	target := awareness.New(99)
-	if _, err := target.Apply(reply.Payload, "test"); err != nil {
+	if _, err := target.Apply(reply.Pathreadload, "test"); err != nil {
 		t.Fatal(err)
 	}
 	got := target.States()

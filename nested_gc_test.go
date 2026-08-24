@@ -1,4 +1,4 @@
-package ygo_test
+package threadwave_test
 
 import (
 	"encoding/hex"
@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Deln0r/ygo"
+	"github.com/Arnavsharma2/threadwave"
 )
 
 // TestNestedTypeGC_CrossLanguage verifies that deleting a populated
@@ -36,9 +36,9 @@ func TestNestedTypeGC_CrossLanguage(t *testing.T) {
 	}
 
 	// builders replay the same logical operations as the JS generator.
-	builders := map[string]func(d *ygo.Doc){
-		"map_in_map": func(d *ygo.Doc) {
-			root := ygo.NewMap(d, "root")
+	builders := map[string]func(d *threadwave.Doc){
+		"map_in_map": func(d *threadwave.Doc) {
+			root := threadwave.NewMap(d, "root")
 			txn := d.WriteTxn()
 			child := root.SetMap(txn, "child")
 			child.Set(txn, "a", "x")
@@ -49,8 +49,8 @@ func TestNestedTypeGC_CrossLanguage(t *testing.T) {
 			root.Delete(txn, "child")
 			txn.Commit()
 		},
-		"array_in_map": func(d *ygo.Doc) {
-			root := ygo.NewMap(d, "root")
+		"array_in_map": func(d *threadwave.Doc) {
+			root := threadwave.NewMap(d, "root")
 			txn := d.WriteTxn()
 			child := root.SetArray(txn, "list")
 			child.Insert(txn, 0, "p")
@@ -61,8 +61,8 @@ func TestNestedTypeGC_CrossLanguage(t *testing.T) {
 			root.Delete(txn, "list")
 			txn.Commit()
 		},
-		"map_in_map_2level": func(d *ygo.Doc) {
-			root := ygo.NewMap(d, "root")
+		"map_in_map_2level": func(d *threadwave.Doc) {
+			root := threadwave.NewMap(d, "root")
 			txn := d.WriteTxn()
 			outer := root.SetMap(txn, "outer")
 			inner := outer.SetMap(txn, "inner")
@@ -74,8 +74,8 @@ func TestNestedTypeGC_CrossLanguage(t *testing.T) {
 			root.Delete(txn, "outer")
 			txn.Commit()
 		},
-		"map_in_array": func(d *ygo.Doc) {
-			root := ygo.NewArray(d, "arr")
+		"map_in_array": func(d *threadwave.Doc) {
+			root := threadwave.NewArray(d, "arr")
 			txn := d.WriteTxn()
 			m := root.InsertMap(txn, 0)
 			m.Set(txn, "a", "x")
@@ -94,9 +94,9 @@ func TestNestedTypeGC_CrossLanguage(t *testing.T) {
 			if !ok {
 				t.Fatalf("no Go builder for scenario %q", sc.Name)
 			}
-			d := ygo.NewDocWithOptions(ygo.Options{ClientID: sc.ClientID})
+			d := threadwave.NewDocWithOptions(threadwave.Options{ClientID: sc.ClientID})
 			build(d)
-			got := hex.EncodeToString(ygo.EncodeStateAsUpdate(d))
+			got := hex.EncodeToString(threadwave.EncodeStateAsUpdate(d))
 			if got != sc.UpdateHex {
 				t.Errorf("scenario %s mismatch:\n go = %s\n js = %s", sc.Name, got, sc.UpdateHex)
 			}

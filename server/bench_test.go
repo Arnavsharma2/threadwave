@@ -11,11 +11,11 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/internal/encoding"
-	syncpkg "github.com/Deln0r/ygo/internal/sync"
-	"github.com/Deln0r/ygo/internal/types"
-	"github.com/Deln0r/ygo/server"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/encoding"
+	syncpkg "github.com/Arnavsharma2/threadwave/internal/sync"
+	"github.com/Arnavsharma2/threadwave/internal/types"
+	"github.com/Arnavsharma2/threadwave/server"
 )
 
 // benchServer spins a server behind httptest and returns its ws:// base
@@ -47,7 +47,7 @@ func benchDial(b *testing.B, wsURL, docName string) *websocket.Conn {
 // update through a room of N connections: the sender writes a fixed
 // SyncUpdate and reads its own broadcast echo while N-1 idle peers drain
 // their copies. ns/op grows with the fan-out width, isolating the
-// server's apply + fan-out cost from client-side encoding (the payload is
+// server's apply + fan-out cost from client-side encoding (the pathreadload is
 // pre-built and constant).
 func BenchmarkServer_BroadcastFanout(b *testing.B) {
 	// Fixed small update: one array item.

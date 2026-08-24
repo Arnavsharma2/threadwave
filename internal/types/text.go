@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Deln0r/ygo/internal/block"
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/internal/utf16"
+	"github.com/Arnavsharma2/threadwave/internal/block"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/utf16"
 )
 
 // Text is the user-facing wrapper around a Branch holding plain

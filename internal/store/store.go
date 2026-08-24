@@ -1,6 +1,6 @@
 package store
 
-import "github.com/Deln0r/ygo/internal/block"
+import "github.com/Arnavsharma2/threadwave/internal/block"
 
 // StateVector summarizes what the local doc knows. For each client it
 // holds the next free clock (exclusive). A peer can compare its own

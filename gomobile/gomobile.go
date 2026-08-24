@@ -1,6 +1,6 @@
-// Package gomobile is the bytes-in/bytes-out subset of the ygo API
+// Package gomobile is the bytes-in/bytes-out subset of the threadwave API
 // designed to survive `gomobile bind`. The full public API at
-// github.com/Deln0r/ygo exposes Go types that gomobile cannot
+// github.com/Arnavsharma2/threadwave exposes Go types that gomobile cannot
 // bind (the `any` interface, callbacks, generic maps), so iOS /
 // Android consumers import this package instead and exchange
 // state with their UI layer via byte arrays.
@@ -8,10 +8,10 @@
 // What gomobile filters out and we work around:
 //
 //   - Function parameters of `any` / `map[K]V` / `chan T` / `func(...)`
-//     are silently skipped from the generated binding. ygo.Map.Set
+//     are silently skipped from the generated binding. threadwave.Map.Set
 //     takes `value any`; gomobile produces a Map type with no Set.
 //   - Slices of non-byte types (e.g. `[]any`, `[]string`) are
-//     skipped. ygo.Array.ToSlice() returns `[]any`.
+//     skipped. threadwave.Array.ToSlice() returns `[]any`.
 //   - Generics break the bind step entirely.
 //   - Callback registration (Sub, OnUpdate, OnChange) is skipped.
 //
@@ -45,13 +45,13 @@ package gomobile
 import (
 	"fmt"
 
-	"github.com/Deln0r/ygo/internal/awareness"
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/internal/encoding"
-	"github.com/Deln0r/ygo/internal/store"
+	"github.com/Arnavsharma2/threadwave/internal/awareness"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/encoding"
+	"github.com/Arnavsharma2/threadwave/internal/store"
 )
 
-// Doc is the gomobile-bindable opaque handle for a ygo CRDT
+// Doc is the gomobile-bindable opaque handle for a threadwave CRDT
 // replica. Construct via NewDoc / NewDocWithClientID. All
 // shared-type operations route through wire-format bytes — push
 // updates in via ApplyUpdate, pull state out via

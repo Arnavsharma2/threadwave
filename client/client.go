@@ -1,6 +1,6 @@
 // Package client is a Yjs sync provider over WebSocket: the Go
 // equivalent of y-websocket's WebsocketProvider, compatible with
-// yserve, Hocuspocus, and the reference y-websocket server.
+// threadserve, Hocuspocus, and the reference y-websocket server.
 //
 // A Client owns a live connection for one document: it runs the
 // y-protocols handshake (SyncStep1 / SyncStep2), broadcasts local
@@ -32,12 +32,12 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/Deln0r/ygo/internal/awareness"
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/internal/encoding"
-	"github.com/Deln0r/ygo/internal/store"
-	syncpkg "github.com/Deln0r/ygo/internal/sync"
-	"github.com/Deln0r/ygo/persist"
+	"github.com/Arnavsharma2/threadwave/internal/awareness"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/encoding"
+	"github.com/Arnavsharma2/threadwave/internal/store"
+	syncpkg "github.com/Arnavsharma2/threadwave/internal/sync"
+	"github.com/Arnavsharma2/threadwave/persist"
 )
 
 // Options configures a Client. URL and DocName are required; the
@@ -410,7 +410,7 @@ func (c *Client) readPump(ctx context.Context, conn *websocket.Conn) error {
 				c.opts.OnError(err)
 			}
 		case syncpkg.MessageAwareness:
-			_, _ = c.awareness.Apply(frame.Payload, "remote")
+			_, _ = c.awareness.Apply(frame.Pathreadload, "remote")
 		case syncpkg.MessageQueryAwareness:
 			c.sendAwareness()
 		case syncpkg.MessagePing:
@@ -425,7 +425,7 @@ func (c *Client) handleSync(frame *syncpkg.Frame) error {
 	case syncpkg.SyncStep1:
 		// Server announces its state vector; reply with the diff and
 		// record that the server now has everything up to our SV.
-		remoteSV, _, err := encoding.DecodeStateVector(frame.Payload)
+		remoteSV, _, err := encoding.DecodeStateVector(frame.Pathreadload)
 		if err != nil {
 			return fmt.Errorf("client: step1 decode: %w", err)
 		}
@@ -441,10 +441,10 @@ func (c *Client) handleSync(frame *syncpkg.Frame) error {
 		c.mu.Unlock()
 		return nil
 	case syncpkg.SyncStep2, syncpkg.SyncUpdate:
-		if len(frame.Payload) == 0 {
+		if len(frame.Pathreadload) == 0 {
 			return nil
 		}
-		if err := c.apply(frame.Payload); err != nil {
+		if err := c.apply(frame.Pathreadload); err != nil {
 			return err
 		}
 		if frame.SyncSub == syncpkg.SyncStep2 {
@@ -457,8 +457,8 @@ func (c *Client) handleSync(frame *syncpkg.Frame) error {
 
 // apply integrates a remote update, tagging the transaction with this
 // client as Origin so the local-edit observer skips it.
-func (c *Client) apply(payload []byte) error {
-	upd, _, err := encoding.DecodeUpdate(payload)
+func (c *Client) apply(pathreadload []byte) error {
+	upd, _, err := encoding.DecodeUpdate(pathreadload)
 	if err != nil {
 		return fmt.Errorf("client: update decode: %w", err)
 	}

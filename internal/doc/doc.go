@@ -17,8 +17,8 @@ import (
 	"encoding/binary"
 	"sync"
 
-	"github.com/Deln0r/ygo/internal/block"
-	"github.com/Deln0r/ygo/internal/store"
+	"github.com/Arnavsharma2/threadwave/internal/block"
+	"github.com/Arnavsharma2/threadwave/internal/store"
 )
 
 // MaxClientID is the upper bound on Doc.ClientID values. Set to
@@ -243,7 +243,7 @@ func (d *Doc) RemoveSubdoc(guid string) {
 // SubdocsEvent carries the subdocument lifecycle changes observed in a
 // single transaction: the GUIDs added (a ContentDoc surfaced), removed
 // (its reference was tombstoned), and loaded (autoLoad or an explicit
-// Load). Mirrors yjs's "subdocs" event payload.
+// Load). Mirrors yjs's "subdocs" event pathreadload.
 type SubdocsEvent struct {
 	Added   []string
 	Removed []string
@@ -341,7 +341,7 @@ func newClientID() uint64 {
 	var b [8]byte
 	for {
 		if _, err := rand.Read(b[:]); err != nil {
-			panic("ygo: crypto/rand failed: " + err.Error())
+			panic("threadwave: crypto/rand failed: " + err.Error())
 		}
 		id := binary.BigEndian.Uint64(b[:]) & MaxClientID
 		if id != 0 {

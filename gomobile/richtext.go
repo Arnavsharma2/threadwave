@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/Deln0r/ygo/internal/types"
+	"github.com/Arnavsharma2/threadwave/internal/types"
 )
 
 // ApplyDelta applies a Quill-style delta to the text in one

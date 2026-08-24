@@ -1,14 +1,14 @@
-// Command ygo-server is the legacy name of the stand-alone WebSocket
-// sync server for ygo documents.
+// Command threadwave-server is the legacy name of the stand-alone WebSocket
+// sync server for threadwave documents.
 //
-// Deprecated: use cmd/yserve instead — same server, plus
-// auto-versioning flags; new server features land there. ygo-server
+// Deprecated: use cmd/threadserve instead — same server, plus
+// auto-versioning flags; new server features land there. threadwave-server
 // remains a working alias for existing deployments and will be
 // removed in a future major release.
 //
 // Usage:
 //
-//	ygo-server [-addr :8080] [-store path/to/ygo.db]
+//	threadwave-server [-addr :8080] [-store path/to/threadwave.db]
 //
 // Without -store the server runs purely in-memory; documents are
 // lost when their last connection disconnects. With -store the
@@ -33,9 +33,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Deln0r/ygo/persist"
-	"github.com/Deln0r/ygo/persist/sqlite"
-	"github.com/Deln0r/ygo/server"
+	"github.com/Arnavsharma2/threadwave/persist"
+	"github.com/Arnavsharma2/threadwave/persist/sqlite"
+	"github.com/Arnavsharma2/threadwave/server"
 )
 
 func main() {
@@ -47,13 +47,13 @@ func main() {
 	if *storePath != "" {
 		s, err := sqlite.Open(*storePath)
 		if err != nil {
-			log.Fatalf("ygo-server: open store %q: %v", *storePath, err)
+			log.Fatalf("threadwave-server: open store %q: %v", *storePath, err)
 		}
 		defer s.Close()
 		store = s
-		log.Printf("ygo-server: persistence enabled (sqlite at %s)", *storePath)
+		log.Printf("threadwave-server: persistence enabled (sqlite at %s)", *storePath)
 	} else {
-		log.Printf("ygo-server: in-memory only (pass -store to persist)")
+		log.Printf("threadwave-server: in-memory only (pass -store to persist)")
 	}
 
 	srv := server.New(server.Options{
@@ -72,24 +72,24 @@ func main() {
 		sig := make(chan os.Signal, 1)
 		signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 		<-sig
-		log.Printf("ygo-server: shutting down")
+		log.Printf("threadwave-server: shutting down")
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		if err := httpSrv.Shutdown(ctx); err != nil {
-			log.Printf("ygo-server: HTTP shutdown: %v", err)
+			log.Printf("threadwave-server: HTTP shutdown: %v", err)
 		}
 		if err := srv.Close(ctx); err != nil {
-			log.Printf("ygo-server: store flush: %v", err)
+			log.Printf("threadwave-server: store flush: %v", err)
 		}
 		close(idleConnsClosed)
 	}()
 
-	log.Printf("ygo-server: listening on %s", *addr)
+	log.Printf("threadwave-server: listening on %s", *addr)
 	if err := httpSrv.ListenAndServe(); err != http.ErrServerClosed {
-		log.Fatalf("ygo-server: %v", err)
+		log.Fatalf("threadwave-server: %v", err)
 	}
 	<-idleConnsClosed
-	log.Printf("ygo-server: stopped")
+	log.Printf("threadwave-server: stopped")
 	fmt.Fprintln(os.Stderr, "")
 }

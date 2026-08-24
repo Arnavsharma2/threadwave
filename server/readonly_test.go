@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Deln0r/ygo/internal/encoding"
-	syncpkg "github.com/Deln0r/ygo/internal/sync"
-	"github.com/Deln0r/ygo/internal/types"
-	"github.com/Deln0r/ygo/server"
+	"github.com/Arnavsharma2/threadwave/internal/encoding"
+	syncpkg "github.com/Arnavsharma2/threadwave/internal/sync"
+	"github.com/Arnavsharma2/threadwave/internal/types"
+	"github.com/Arnavsharma2/threadwave/server"
 )
 
 // TestServer_ReadOnly_ViewerCannotWriteButReceives wires Options.ReadOnly
@@ -92,7 +92,7 @@ func applyUntil(t *testing.T, c *wsClient, arr *types.Array, n int) {
 		}
 		if f.Type == syncpkg.MessageSync &&
 			(f.SyncSub == syncpkg.SyncStep2 || f.SyncSub == syncpkg.SyncUpdate) {
-			_ = encoding.ApplyUpdate(c.doc, f.Payload)
+			_ = encoding.ApplyUpdate(c.doc, f.Pathreadload)
 		}
 	}
 }

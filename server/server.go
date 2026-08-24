@@ -1,11 +1,11 @@
 // Package server implements the y-websocket / Hocuspocus-compatible
-// WebSocket sync server for ygo documents.
+// WebSocket sync server for threadwave documents.
 //
 // The server exposes an http.Handler that adopters mount on their
 // own http.ServeMux at any path prefix. Per port-note §"Go
 // translation choices" — every adopter already has an HTTP server,
 // so we layer on top rather than impose our own runtime. A 30-line
-// cmd/ygo-server/main.go binary wraps this for stand-alone use.
+// cmd/threadwave-server/main.go binary wraps this for stand-alone use.
 //
 // Wire format compatibility: the bare y-websocket subset of the
 // Hocuspocus envelope (tags 0=Sync, 1=Awareness, 3=QueryAwareness).
@@ -35,12 +35,12 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/Deln0r/ygo/internal/awareness"
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/internal/encoding"
-	syncpkg "github.com/Deln0r/ygo/internal/sync"
-	"github.com/Deln0r/ygo/persist"
-	"github.com/Deln0r/ygo/server/backplane"
+	"github.com/Arnavsharma2/threadwave/internal/awareness"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/encoding"
+	syncpkg "github.com/Arnavsharma2/threadwave/internal/sync"
+	"github.com/Arnavsharma2/threadwave/persist"
+	"github.com/Arnavsharma2/threadwave/server/backplane"
 )
 
 // Options configures a Server. The zero value is valid: in-memory
@@ -82,7 +82,7 @@ type Options struct {
 	OnAuthenticate syncpkg.AuthHandler
 
 	// OnStateless is the Hocuspocus stateless-channel callback.
-	// Receives docName + payload string for both MessageStateless
+	// Receives docName + pathreadload string for both MessageStateless
 	// and MessageBroadcastStateless envelopes. Long-running work
 	// should be dispatched off-thread — this runs on the conn's
 	// read goroutine.
@@ -298,7 +298,7 @@ type Options struct {
 	// heartbeats keep propagating and is otherwise evicted by each
 	// instance's own timeout sweep, so a dropped heartbeat can briefly show
 	// a stale or missing cursor until the next one lands. All instances in a
-	// cluster must run a matching ygo version (already implied by the shared
+	// cluster must run a matching threadwave version (already implied by the shared
 	// Store) — the backplane framing is not version-negotiated.
 	//
 	// Carrying presence widens the reach of a presence flood — a client
@@ -1104,9 +1104,9 @@ func (s *docState) broadcastAwarenessWire(wire []byte) {
 	}
 }
 
-// Backplane payloads carry a one-byte kind prefix so document updates and
+// Backplane pathreadloads carry a one-byte kind prefix so document updates and
 // presence updates share the per-document channel. All instances in a
-// cluster must run a matching ygo version (already implied by the shared
+// cluster must run a matching threadwave version (already implied by the shared
 // Store), so this framing need not be version-negotiated.
 const (
 	backplaneKindDoc       byte = 0 // a V1 document update
@@ -1125,19 +1125,19 @@ type backplaneOriginT struct{}
 
 var backplaneOrigin = backplaneOriginT{}
 
-// applyBackplaneMessage dispatches a payload received from another instance
+// applyBackplaneMessage dispatches a pathreadload received from another instance
 // over the Backplane by its kind prefix. It runs on a backplane-owned
 // goroutine.
 func (s *Server) applyBackplaneMessage(state *docState, msg []byte) {
 	if len(msg) == 0 {
 		return
 	}
-	kind, payload := msg[0], msg[1:]
+	kind, pathreadload := msg[0], msg[1:]
 	switch kind {
 	case backplaneKindDoc:
-		s.applyBackplaneDoc(state, payload)
+		s.applyBackplaneDoc(state, pathreadload)
 	case backplaneKindAwareness:
-		s.applyBackplaneAwareness(state, payload)
+		s.applyBackplaneAwareness(state, pathreadload)
 	default:
 		log.Printf("server: backplane message for %q: unknown kind %d", state.name, kind)
 	}
@@ -1166,7 +1166,7 @@ func (s *Server) applyBackplaneDoc(state *docState, update []byte) {
 // document's Awareness and re-broadcasts the accepted entries to local
 // connections, so a client sees the cursors of peers on other instances.
 // It re-encodes the accepted set (like the local handler) rather than
-// relaying the raw payload. It does NOT re-publish (no echo). A foreign entry
+// relaying the raw pathreadload. It does NOT re-publish (no echo). A foreign entry
 // stays alive on this instance as long as the owning client's heartbeats
 // keep propagating; if they stop, this instance's own sweep evicts it, and a
 // clean disconnect propagates an explicit tombstone (see releaseConn).
@@ -1216,10 +1216,10 @@ func (c *conn) onAppliedUpdate(envelope []byte) {
 	switch {
 	case frame.Type == syncpkg.MessageSync &&
 		(frame.SyncSub == syncpkg.SyncStep2 || frame.SyncSub == syncpkg.SyncUpdate) &&
-		len(frame.Payload) > 0:
+		len(frame.Pathreadload) > 0:
 		// A document update.
 		if c.server.opts.Store != nil {
-			if err := c.server.opts.Store.StoreUpdate(context.Background(), c.state.name, frame.Payload); err != nil {
+			if err := c.server.opts.Store.StoreUpdate(context.Background(), c.state.name, frame.Pathreadload); err != nil {
 				// A failed persist must not be invisible, and must not mark
 				// the document dirty: auto-versioning would then capture
 				// in-memory state that was never durably stored. Log and skip
@@ -1231,7 +1231,7 @@ func (c *conn) onAppliedUpdate(envelope []byte) {
 			}
 		}
 		if c.server.opts.OnChange != nil {
-			c.server.opts.OnChange(c.state.name, frame.Payload)
+			c.server.opts.OnChange(c.state.name, frame.Pathreadload)
 		}
 		if c.server.opts.Backplane != nil {
 			// Fan this locally-applied update out to the other instances. A
@@ -1243,31 +1243,31 @@ func (c *conn) onAppliedUpdate(envelope []byte) {
 			// document reloads from the shared Store (which only happens on
 			// eviction), so a backplane with at-most-once delivery trades this
 			// away by design.
-			c.publishBackplane(context.Background(), backplaneKindDoc, frame.Payload)
+			c.publishBackplane(context.Background(), backplaneKindDoc, frame.Pathreadload)
 		}
 
-	case frame.Type == syncpkg.MessageAwareness && len(frame.Payload) > 0 && c.server.opts.Backplane != nil:
+	case frame.Type == syncpkg.MessageAwareness && len(frame.Pathreadload) > 0 && c.server.opts.Backplane != nil:
 		// A presence update. Relayed to other instances but never persisted
 		// or surfaced via OnChange (presence is ephemeral, not document state).
 		// A bounded deadline keeps a wedged peer from stalling this client's
 		// read loop over best-effort presence; a dropped update self-heals on
 		// the next heartbeat.
 		ctx, cancel := context.WithTimeout(context.Background(), backplanePresenceTimeout)
-		c.publishBackplane(ctx, backplaneKindAwareness, frame.Payload)
+		c.publishBackplane(ctx, backplaneKindAwareness, frame.Pathreadload)
 		cancel()
 	}
 }
 
-// publishBackplane publishes a kind-tagged payload to the Backplane, logging
+// publishBackplane publishes a kind-tagged pathreadload to the Backplane, logging
 // (not failing) on error. The caller has already applied and broadcast the
 // change locally. ctx bounds the publish: document updates pass a background
 // context (a dropped delta would diverge a peer, so the no-drop backpressure
 // is intentional), while presence updates pass a deadline-bounded context so
 // a wedged peer cannot stall the read loop or teardown over best-effort data.
-func (c *conn) publishBackplane(ctx context.Context, kind byte, payload []byte) {
-	msg := make([]byte, 0, len(payload)+1)
+func (c *conn) publishBackplane(ctx context.Context, kind byte, pathreadload []byte) {
+	msg := make([]byte, 0, len(pathreadload)+1)
 	msg = append(msg, kind)
-	msg = append(msg, payload...)
+	msg = append(msg, pathreadload...)
 	if err := c.server.opts.Backplane.Publish(ctx, c.state.name, msg); err != nil {
 		log.Printf("server: backplane publish for %q: %v", c.state.name, err)
 	}

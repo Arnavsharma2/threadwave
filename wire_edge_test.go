@@ -1,4 +1,4 @@
-package ygo_test
+package threadwave_test
 
 import (
 	"encoding/hex"
@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Deln0r/ygo"
+	"github.com/Arnavsharma2/threadwave"
 )
 
 type wireEdgeFile struct {
@@ -53,14 +53,14 @@ func TestWireEdge_CrossLanguage(t *testing.T) {
 				t.Fatalf("bad hex: %v", err)
 			}
 
-			d := ygo.NewDoc()
-			if err := ygo.ApplyUpdate(d, want); err != nil {
+			d := threadwave.NewDoc()
+			if err := threadwave.ApplyUpdate(d, want); err != nil {
 				t.Fatalf("ApplyUpdate: %v", err)
 			}
 
 			switch sc.RootKind {
 			case "array":
-				got := ygo.NewArray(d, sc.RootName).ToSlice()
+				got := threadwave.NewArray(d, sc.RootName).ToSlice()
 				if len(got) != len(sc.Expected) {
 					t.Errorf("array len %d, want %d (%v)", len(got), len(sc.Expected), got)
 				} else {
@@ -71,7 +71,7 @@ func TestWireEdge_CrossLanguage(t *testing.T) {
 					}
 				}
 			case "map":
-				m := ygo.NewMap(d, sc.RootName)
+				m := threadwave.NewMap(d, sc.RootName)
 				for k, ev := range sc.ExpectMap {
 					if gv := m.Get(k); !valEq(gv, ev) {
 						t.Errorf("map[%q] = %v, want %v", k, gv, ev)
@@ -79,7 +79,7 @@ func TestWireEdge_CrossLanguage(t *testing.T) {
 				}
 			}
 
-			got := ygo.EncodeStateAsUpdate(d)
+			got := threadwave.EncodeStateAsUpdate(d)
 			if hex.EncodeToString(got) != sc.UpdateHex {
 				t.Errorf("re-encode mismatch (client/DS ordering or wide-id)\n got: %s\nwant: %s",
 					hex.EncodeToString(got), sc.UpdateHex)
@@ -88,7 +88,7 @@ func TestWireEdge_CrossLanguage(t *testing.T) {
 	}
 }
 
-// valEq compares a decoded ygo value against a JSON-parsed expected
+// valEq compares a decoded threadwave value against a JSON-parsed expected
 // value, normalizing the float64-vs-int number representation.
 func valEq(g, e any) bool {
 	if ef, ok := e.(float64); ok {

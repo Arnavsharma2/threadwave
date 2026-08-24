@@ -10,7 +10,7 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/Deln0r/ygo/server"
+	"github.com/Arnavsharma2/threadwave/server"
 )
 
 // TestServer_OnConnectOnDisconnect exercises the connection lifecycle

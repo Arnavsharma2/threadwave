@@ -7,7 +7,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Deln0r/ygo/persist/sqlite"
+	"github.com/Arnavsharma2/threadwave/persist/sqlite"
 )
 
 // TestStore_SpecialCharPath_NoMisdirect guards against the file:-URI

@@ -1,4 +1,4 @@
-package ygo_test
+package threadwave_test
 
 import (
 	"bytes"
@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Deln0r/ygo"
+	"github.com/Arnavsharma2/threadwave"
 )
 
 type relposFixtureFile struct {
@@ -36,22 +36,22 @@ type relposCreate struct {
 
 // resolveScopeType walks root + path to the shared-type wrapper the
 // scenario anchors in.
-func resolveScopeType(t *testing.T, d *ygo.Doc, sc relposScenario) ygo.UndoScope {
+func resolveScopeType(t *testing.T, d *threadwave.Doc, sc relposScenario) threadwave.UndoScope {
 	t.Helper()
 	switch sc.RootKind {
 	case "text":
-		return ygo.NewText(d, sc.Root)
+		return threadwave.NewText(d, sc.Root)
 	case "array":
-		return ygo.NewArray(d, sc.Root)
+		return threadwave.NewArray(d, sc.Root)
 	case "map":
-		m := ygo.NewMap(d, sc.Root)
+		m := threadwave.NewMap(d, sc.Root)
 		if len(sc.Create.Path) == 0 {
 			return m
 		}
 		v := m.Get(sc.Create.Path[0])
-		txt, ok := v.(*ygo.Text)
+		txt, ok := v.(*threadwave.Text)
 		if !ok {
-			t.Fatalf("path %v: got %T, want *ygo.Text", sc.Create.Path, v)
+			t.Fatalf("path %v: got %T, want *threadwave.Text", sc.Create.Path, v)
 		}
 		return txt
 	default:
@@ -84,11 +84,11 @@ func TestRelativePosition_Fixtures(t *testing.T) {
 			}
 
 			// Decode -> re-encode round-trips the JS bytes exactly.
-			rpos, err := ygo.DecodeRelativePosition(jsBytes)
+			rpos, err := threadwave.DecodeRelativePosition(jsBytes)
 			if err != nil {
 				t.Fatalf("decode: %v", err)
 			}
-			got, err := ygo.EncodeRelativePosition(rpos)
+			got, err := threadwave.EncodeRelativePosition(rpos)
 			if err != nil {
 				t.Fatalf("re-encode: %v", err)
 			}
@@ -101,16 +101,16 @@ func TestRelativePosition_Fixtures(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			d := ygo.NewDoc()
-			if err := ygo.ApplyUpdate(d, before); err != nil {
+			d := threadwave.NewDoc()
+			if err := threadwave.ApplyUpdate(d, before); err != nil {
 				t.Fatalf("apply before: %v", err)
 			}
 			scope := resolveScopeType(t, d, sc)
-			created, err := ygo.CreateRelativePositionFromTypeIndex(scope, sc.Create.Index, sc.Create.Assoc)
+			created, err := threadwave.CreateRelativePositionFromTypeIndex(scope, sc.Create.Index, sc.Create.Assoc)
 			if err != nil {
 				t.Fatalf("create: %v", err)
 			}
-			createdBytes, err := ygo.EncodeRelativePosition(created)
+			createdBytes, err := threadwave.EncodeRelativePosition(created)
 			if err != nil {
 				t.Fatalf("encode created: %v", err)
 			}
@@ -126,7 +126,7 @@ func TestRelativePosition_Fixtures(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if err := ygo.ApplyUpdate(d, after); err != nil {
+			if err := threadwave.ApplyUpdate(d, after); err != nil {
 				t.Fatalf("apply after: %v", err)
 			}
 			checkResolve(t, d, rpos, sc.ExpectedIndexAfter, "after")
@@ -134,9 +134,9 @@ func TestRelativePosition_Fixtures(t *testing.T) {
 	}
 }
 
-func checkResolve(t *testing.T, d *ygo.Doc, rpos ygo.RelativePosition, want *uint64, stage string) {
+func checkResolve(t *testing.T, d *threadwave.Doc, rpos threadwave.RelativePosition, want *uint64, stage string) {
 	t.Helper()
-	abs, ok := ygo.CreateAbsolutePositionFromRelativePosition(d, rpos)
+	abs, ok := threadwave.CreateAbsolutePositionFromRelativePosition(d, rpos)
 	if want == nil {
 		if ok {
 			t.Errorf("%s: resolved to %d, want unresolvable", stage, abs.Index)

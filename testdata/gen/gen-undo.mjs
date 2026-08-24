@@ -5,7 +5,7 @@
 // the undo / redo stacks. So the cross-language check is semantic, not
 // byte-level. Each scenario runs an identical operation + undo/redo
 // sequence in yjs and records the FINAL document state. The Go test in
-// undo_fixtures_test.go runs the same sequence via ygo's UndoManager
+// undo_fixtures_test.go runs the same sequence via threadwave's UndoManager
 // and asserts it lands on the same state.
 //
 // Scenario logic is duplicated (here in JS, there in Go) on purpose:

@@ -3,8 +3,8 @@ package encoding
 import (
 	"sort"
 
-	"github.com/Deln0r/ygo/internal/lib0"
-	"github.com/Deln0r/ygo/internal/store"
+	"github.com/Arnavsharma2/threadwave/internal/lib0"
+	"github.com/Arnavsharma2/threadwave/internal/store"
 )
 
 // EncodeStateVector appends the V1 wire encoding of sv to buf and

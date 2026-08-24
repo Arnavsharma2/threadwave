@@ -4,17 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/Deln0r/ygo/internal/block"
-	"github.com/Deln0r/ygo/internal/lib0"
+	"github.com/Arnavsharma2/threadwave/internal/block"
+	"github.com/Arnavsharma2/threadwave/internal/lib0"
 )
 
 // writeJSON appends `varstring(JSON.stringify(v))` to buf, matching
 // yjs UpdateEncoderV1.writeJSON (testdata/gen/node_modules/yjs/src/
 // utils/UpdateEncoder.js:115). Used by KindFormat and KindEmbed
-// content variants — both encode their payload as a JSON-string,
+// content variants — both encode their pathreadload as a JSON-string,
 // NOT as a lib0 Any TLV. The two encoding paths look superficially
 // similar (both varuint-prefix some bytes) but diverge on the
-// payload: lib0 Any starts with a 1-byte type tag (116..127),
+// pathreadload: lib0 Any starts with a 1-byte type tag (116..127),
 // JSON starts with the textual representation.
 //
 // nil values encode as the JSON literal "null".
@@ -44,7 +44,7 @@ func readJSON(buf []byte) (block.Any, []byte, error) {
 	return v, buf[n:], nil
 }
 
-// EncodeContent appends the wire-format payload of c to buf. Caller
+// EncodeContent appends the wire-format pathreadload of c to buf. Caller
 // has already emitted the info byte; this writes only the content
 // field that follows.
 //
@@ -70,7 +70,7 @@ func EncodeContent(buf []byte, c block.Content) []byte {
 	case block.KindDeleted:
 		return lib0.WriteVarUint(buf, c.DeletedLen)
 	case block.KindEmbed:
-		// Single JSON-encoded payload — yjs ContentEmbed.write
+		// Single JSON-encoded pathreadload — yjs ContentEmbed.write
 		// calls writeJSON which is `varstring(JSON.stringify(v))`
 		// in the V1 encoder (testdata/gen/node_modules/yjs/src/
 		// structs/ContentEmbed.js + UpdateEncoder.js:115). NOT
@@ -91,7 +91,7 @@ func EncodeContent(buf []byte, c block.Content) []byte {
 		}
 		return writeJSON(buf, v)
 	case block.KindType:
-		// ContentType payload: varuint(typeRef) + optional
+		// ContentType pathreadload: varuint(typeRef) + optional
 		// varstring(name) for XmlElement (refID 3) and XmlHook
 		// (refID 5). Per docs/yrs-port-notes/nested-types.md §2,
 		// citing yjs/src/structs/ContentType.js:1507-1510 and
@@ -106,7 +106,7 @@ func EncodeContent(buf []byte, c block.Content) []byte {
 		}
 		return buf
 	case block.KindDoc:
-		// ContentDoc payload: varstring(guid) + Any(opts). Mirrors
+		// ContentDoc pathreadload: varstring(guid) + Any(opts). Mirrors
 		// yjs ContentDoc.write. opts is always an object (possibly
 		// empty), never nil, so the Any tag is the object tag.
 		buf = lib0.WriteVarString(buf, c.DocGuid)
@@ -120,7 +120,7 @@ func EncodeContent(buf []byte, c block.Content) []byte {
 	}
 }
 
-// DecodeContent reads a Content payload from buf given the content
+// DecodeContent reads a Content pathreadload from buf given the content
 // ref-number (the low nibble of the info byte). Returns the parsed
 // Content plus the unconsumed tail.
 //
@@ -170,7 +170,7 @@ func DecodeContent(buf []byte, refNum uint8) (block.Content, []byte, error) {
 		}
 		return block.Content{Kind: block.KindDeleted, DeletedLen: v}, buf[n:], nil
 	case block.KindEmbed:
-		// JSON-string payload, NOT lib0 Any. Mirrors
+		// JSON-string pathreadload, NOT lib0 Any. Mirrors
 		// yjs UpdateDecoder.readJSON.
 		v, tail, err := readJSON(buf)
 		if err != nil {

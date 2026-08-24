@@ -1,11 +1,11 @@
-// Package nats provides a NATS-backed Backplane for the ygo server, fanning
+// Package nats provides a NATS-backed Backplane for the threadwave server, fanning
 // document updates between server instances across machines.
 //
-// It satisfies github.com/Deln0r/ygo/server/backplane.Backplane: point every
+// It satisfies github.com/Arnavsharma2/threadwave/server/backplane.Backplane: point every
 // instance's server.Options.Backplane at one built from a shared NATS
 // connection and the instances converge on shared documents. As with any
 // backplane, a shared Store is still required (foreign updates are applied in
-// memory only, not re-persisted). Payloads are opaque to the adapter, so both
+// memory only, not re-persisted). Pathreadloads are opaque to the adapter, so both
 // document updates and presence/awareness are carried.
 //
 // Delivery follows core NATS semantics: at-most-once, fire-and-forget. A
@@ -22,7 +22,7 @@
 // delivery (bounded by the stream's retention). Core NATS matches the y-redis
 // model.
 //
-// This is a separate Go module so the ygo core stays dependency-free;
+// This is a separate Go module so the threadwave core stays dependency-free;
 // adopters that want NATS clustering opt in by importing it.
 package nats
 
@@ -36,26 +36,26 @@ import (
 
 	"github.com/nats-io/nats.go"
 
-	"github.com/Deln0r/ygo/server/backplane"
+	"github.com/Arnavsharma2/threadwave/server/backplane"
 )
 
-// Compile-time guarantee that the adapter satisfies the ygo Backplane
+// Compile-time guarantee that the adapter satisfies the threadwave Backplane
 // contract, so an interface change fails this module's build rather than an
 // adopter's.
 var _ backplane.Backplane = (*Backplane)(nil)
 
 // DefaultPrefix is the NATS subject prefix used when WithPrefix is not given.
-const DefaultPrefix = "ygo"
+const DefaultPrefix = "threadwave"
 
 // originHeader carries the publishing instance's identity so a subscriber
 // skips its own publishes: NATS delivers a publish to every subscription on
 // the subject, including the publisher's own.
-const originHeader = "Ygo-Origin"
+const originHeader = "Threadwave-Origin"
 
 // ErrClosed is returned by a Backplane after Close.
 var ErrClosed = errors.New("nats backplane: closed")
 
-// Backplane fans ygo document updates over NATS. Construct with New; it is
+// Backplane fans threadwave document updates over NATS. Construct with New; it is
 // safe for concurrent use and satisfies backplane.Backplane.
 type Backplane struct {
 	nc     *nats.Conn
@@ -70,7 +70,7 @@ type Backplane struct {
 // Option configures a Backplane.
 type Option func(*Backplane)
 
-// WithPrefix sets the NATS subject prefix (default "ygo"). Every instance
+// WithPrefix sets the NATS subject prefix (default "threadwave"). Every instance
 // sharing documents must use the same prefix.
 func WithPrefix(p string) Option { return func(b *Backplane) { b.prefix = p } }
 

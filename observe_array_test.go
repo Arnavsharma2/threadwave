@@ -1,14 +1,14 @@
-package ygo_test
+package threadwave_test
 
 import (
 	"testing"
 
-	"github.com/Deln0r/ygo"
+	"github.com/Arnavsharma2/threadwave"
 )
 
-func collectArrayDeltas(a *ygo.Array) *[][]ygo.ArrayDeltaOp {
-	out := &[][]ygo.ArrayDeltaOp{}
-	a.Observe(func(e *ygo.ArrayEvent) { *out = append(*out, e.Delta) })
+func collectArrayDeltas(a *threadwave.Array) *[][]threadwave.ArrayDeltaOp {
+	out := &[][]threadwave.ArrayDeltaOp{}
+	a.Observe(func(e *threadwave.ArrayEvent) { *out = append(*out, e.Delta) })
 	return out
 }
 
@@ -17,20 +17,20 @@ func collectArrayDeltas(a *ygo.Array) *[][]ygo.ArrayDeltaOp {
 // retain ops and the dropped trailing retain.
 func TestArrayObserve_Delta(t *testing.T) {
 	t.Run("insert head", func(t *testing.T) {
-		d := ygo.NewDoc()
-		a := ygo.NewArray(d, "a")
+		d := threadwave.NewDoc()
+		a := threadwave.NewArray(d, "a")
 		ev := collectArrayDeltas(a)
 		txn := d.WriteTxn()
 		a.Push(txn, "x", "y", "z")
 		txn.Commit()
-		assertDeltas(t, *ev, [][]ygo.ArrayDeltaOp{
+		assertDeltas(t, *ev, [][]threadwave.ArrayDeltaOp{
 			{{Insert: []any{"x", "y", "z"}}},
 		})
 	})
 
 	t.Run("retain then insert middle", func(t *testing.T) {
-		d := ygo.NewDoc()
-		a := ygo.NewArray(d, "a")
+		d := threadwave.NewDoc()
+		a := threadwave.NewArray(d, "a")
 		txn := d.WriteTxn()
 		a.Push(txn, "a", "b", "c")
 		txn.Commit()
@@ -38,14 +38,14 @@ func TestArrayObserve_Delta(t *testing.T) {
 		txn = d.WriteTxn()
 		a.Insert(txn, 1, "X")
 		txn.Commit()
-		assertDeltas(t, *ev, [][]ygo.ArrayDeltaOp{
+		assertDeltas(t, *ev, [][]threadwave.ArrayDeltaOp{
 			{{Retain: 1}, {Insert: []any{"X"}}},
 		})
 	})
 
 	t.Run("retain then delete (trailing retain dropped)", func(t *testing.T) {
-		d := ygo.NewDoc()
-		a := ygo.NewArray(d, "a")
+		d := threadwave.NewDoc()
+		a := threadwave.NewArray(d, "a")
 		txn := d.WriteTxn()
 		a.Push(txn, "a", "b", "c", "d")
 		txn.Commit()
@@ -53,14 +53,14 @@ func TestArrayObserve_Delta(t *testing.T) {
 		txn = d.WriteTxn()
 		a.Delete(txn, 1, 2) // remove b,c -> [a,d]; trailing retain on d dropped
 		txn.Commit()
-		assertDeltas(t, *ev, [][]ygo.ArrayDeltaOp{
+		assertDeltas(t, *ev, [][]threadwave.ArrayDeltaOp{
 			{{Retain: 1}, {Delete: 2}},
 		})
 	})
 
 	t.Run("insert and delete one txn", func(t *testing.T) {
-		d := ygo.NewDoc()
-		a := ygo.NewArray(d, "a")
+		d := threadwave.NewDoc()
+		a := threadwave.NewArray(d, "a")
 		txn := d.WriteTxn()
 		a.Push(txn, "a", "b", "c")
 		txn.Commit()
@@ -69,14 +69,14 @@ func TestArrayObserve_Delta(t *testing.T) {
 		a.Insert(txn, 1, "X") // [a,X,b,c]
 		a.Delete(txn, 2, 1)   // remove b -> [a,X,c]; c's trailing retain dropped
 		txn.Commit()
-		assertDeltas(t, *ev, [][]ygo.ArrayDeltaOp{
+		assertDeltas(t, *ev, [][]threadwave.ArrayDeltaOp{
 			{{Retain: 1}, {Insert: []any{"X"}}, {Delete: 1}},
 		})
 	})
 
 	t.Run("delete head no trailing retain", func(t *testing.T) {
-		d := ygo.NewDoc()
-		a := ygo.NewArray(d, "a")
+		d := threadwave.NewDoc()
+		a := threadwave.NewArray(d, "a")
 		txn := d.WriteTxn()
 		a.Push(txn, "a", "b", "c")
 		txn.Commit()
@@ -84,7 +84,7 @@ func TestArrayObserve_Delta(t *testing.T) {
 		txn = d.WriteTxn()
 		a.Delete(txn, 0, 1) // remove a -> [b,c]; trailing retain dropped
 		txn.Commit()
-		assertDeltas(t, *ev, [][]ygo.ArrayDeltaOp{
+		assertDeltas(t, *ev, [][]threadwave.ArrayDeltaOp{
 			{{Delete: 1}},
 		})
 	})
@@ -93,24 +93,24 @@ func TestArrayObserve_Delta(t *testing.T) {
 // TestArrayObserve_RemoteUpdate confirms array observers fire on a
 // remote update.
 func TestArrayObserve_RemoteUpdate(t *testing.T) {
-	src := ygo.NewDoc()
-	sa := ygo.NewArray(src, "a")
+	src := threadwave.NewDoc()
+	sa := threadwave.NewArray(src, "a")
 	txn := src.WriteTxn()
 	sa.Push(txn, 1, 2)
 	txn.Commit()
 
-	dst := ygo.NewDoc()
-	da := ygo.NewArray(dst, "a")
+	dst := threadwave.NewDoc()
+	da := threadwave.NewArray(dst, "a")
 	ev := collectArrayDeltas(da)
-	if err := ygo.ApplyUpdate(dst, ygo.EncodeStateAsUpdate(src)); err != nil {
+	if err := threadwave.ApplyUpdate(dst, threadwave.EncodeStateAsUpdate(src)); err != nil {
 		t.Fatal(err)
 	}
-	assertDeltas(t, *ev, [][]ygo.ArrayDeltaOp{
+	assertDeltas(t, *ev, [][]threadwave.ArrayDeltaOp{
 		{{Insert: []any{int64(1), int64(2)}}},
 	})
 }
 
-func assertDeltas(t *testing.T, got, want [][]ygo.ArrayDeltaOp) {
+func assertDeltas(t *testing.T, got, want [][]threadwave.ArrayDeltaOp) {
 	t.Helper()
 	if len(got) != len(want) {
 		t.Fatalf("got %d events, want %d: %+v", len(got), len(want), got)

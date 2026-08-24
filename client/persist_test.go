@@ -5,10 +5,10 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Deln0r/ygo/client"
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/internal/types"
-	"github.com/Deln0r/ygo/persist/sqlite"
+	"github.com/Arnavsharma2/threadwave/client"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/types"
+	"github.com/Arnavsharma2/threadwave/persist/sqlite"
 )
 
 // deadURL returns a ws:// URL nothing answers (a bound-then-closed

@@ -1,4 +1,4 @@
-module github.com/Deln0r/ygo
+module github.com/Arnavsharma2/threadwave
 
 go 1.25.0
 

@@ -4,10 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Deln0r/ygo/internal/block"
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/internal/types"
-	"github.com/Deln0r/ygo/internal/undo"
+	"github.com/Arnavsharma2/threadwave/internal/block"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/types"
+	"github.com/Arnavsharma2/threadwave/internal/undo"
 )
 
 // mapSet drives a real types.Map.Set through a WriteTxn with the

@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Deln0r/ygo/internal/block"
-	"github.com/Deln0r/ygo/internal/lib0"
+	"github.com/Arnavsharma2/threadwave/internal/block"
+	"github.com/Arnavsharma2/threadwave/internal/lib0"
 )
 
 // DecoderV2 is the column-oriented update decoder matching yjs
@@ -265,7 +265,7 @@ func (d *DecoderV2) ReadKey() (string, error) {
 	return s, nil
 }
 
-// ReadJSON consumes the next JSON-encoded payload (varstring) from
+// ReadJSON consumes the next JSON-encoded pathreadload (varstring) from
 // the rest stream and JSON-unmarshals it. Used by ContentFormat /
 // ContentEmbed (mirrors V1 readJSON path).
 func (d *DecoderV2) ReadJSON() (block.Any, error) {

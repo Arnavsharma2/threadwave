@@ -13,13 +13,13 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/Deln0r/ygo/internal/awareness"
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/internal/encoding"
-	syncpkg "github.com/Deln0r/ygo/internal/sync"
-	"github.com/Deln0r/ygo/internal/types"
-	"github.com/Deln0r/ygo/persist/sqlite"
-	"github.com/Deln0r/ygo/server"
+	"github.com/Arnavsharma2/threadwave/internal/awareness"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/encoding"
+	syncpkg "github.com/Arnavsharma2/threadwave/internal/sync"
+	"github.com/Arnavsharma2/threadwave/internal/types"
+	"github.com/Arnavsharma2/threadwave/persist/sqlite"
+	"github.com/Arnavsharma2/threadwave/server"
 )
 
 // startTestServer wires a server.Server into httptest. Returns the
@@ -162,7 +162,7 @@ func TestServer_TwoClients_SyncUpdateBroadcast(t *testing.T) {
 	step2 := b.readUntil(t, func(f *syncpkg.Frame) bool {
 		return f.Type == syncpkg.MessageSync && f.SyncSub == syncpkg.SyncStep2
 	})
-	if err := encoding.ApplyUpdate(b.doc, step2.Payload); err != nil {
+	if err := encoding.ApplyUpdate(b.doc, step2.Pathreadload); err != nil {
 		t.Fatal(err)
 	}
 
@@ -199,7 +199,7 @@ func TestServer_Awareness_BroadcastBetweenClients(t *testing.T) {
 	for i := 0; i < 5 && !sawA; i++ {
 		f := b.read(t)
 		if f.Type == syncpkg.MessageAwareness {
-			summary, err := b.awareness.Apply(f.Payload, "server")
+			summary, err := b.awareness.Apply(f.Pathreadload, "server")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -220,7 +220,7 @@ func TestServer_Awareness_BroadcastBetweenClients(t *testing.T) {
 func TestServer_Persistence_StateSurvivesRestart(t *testing.T) {
 	// Round 1: server with a file-backed sqlite store; one client
 	// pushes content; disconnect.
-	dbPath := filepath.Join(t.TempDir(), "ygo-server.db")
+	dbPath := filepath.Join(t.TempDir(), "threadwave-server.db")
 	store1, err := sqlite.Open(dbPath)
 	if err != nil {
 		t.Fatal(err)
@@ -269,7 +269,7 @@ func TestServer_Persistence_StateSurvivesRestart(t *testing.T) {
 	step2 := b.readUntil(t, func(f *syncpkg.Frame) bool {
 		return f.Type == syncpkg.MessageSync && f.SyncSub == syncpkg.SyncStep2
 	})
-	if err := encoding.ApplyUpdate(b.doc, step2.Payload); err != nil {
+	if err := encoding.ApplyUpdate(b.doc, step2.Pathreadload); err != nil {
 		t.Fatal(err)
 	}
 	arrB := types.NewArray(b.doc.Branch("items"))
@@ -388,7 +388,7 @@ func TestServer_ConcurrentEdits_AllConverge(t *testing.T) {
 			}
 			if frame.Type == syncpkg.MessageSync &&
 				(frame.SyncSub == syncpkg.SyncStep2 || frame.SyncSub == syncpkg.SyncUpdate) {
-				_ = encoding.ApplyUpdate(c.doc, frame.Payload)
+				_ = encoding.ApplyUpdate(c.doc, frame.Pathreadload)
 			}
 		}
 		if arr.Len() < clients*perClient {
@@ -475,8 +475,8 @@ func TestServer_HocusStateless_BroadcastsAcrossClients(t *testing.T) {
 	var serverSeen []string
 	wsURL, _ := startTestServer(t, server.Options{
 		OriginPatterns: []string{"*"},
-		OnStateless: func(_, payload string) {
-			serverSeen = append(serverSeen, payload)
+		OnStateless: func(_, pathreadload string) {
+			serverSeen = append(serverSeen, pathreadload)
 		},
 	})
 
@@ -494,8 +494,8 @@ func TestServer_HocusStateless_BroadcastsAcrossClients(t *testing.T) {
 		got := c.readUntil(t, func(f *syncpkg.Frame) bool {
 			return f.Type == syncpkg.MessageBroadcastStateless
 		})
-		if string(got.Payload) != "ping-1" {
-			t.Errorf("%s received %q, want ping-1", label, got.Payload)
+		if string(got.Pathreadload) != "ping-1" {
+			t.Errorf("%s received %q, want ping-1", label, got.Pathreadload)
 		}
 	}
 

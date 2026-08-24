@@ -3,9 +3,9 @@ package encoding
 import (
 	"testing"
 
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/internal/store"
-	"github.com/Deln0r/ygo/internal/types"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/store"
+	"github.com/Arnavsharma2/threadwave/internal/types"
 )
 
 // FuzzDecodeUpdate feeds arbitrary bytes to the V1 update decoder. The
@@ -159,7 +159,7 @@ func FuzzDecodeStateVector(f *testing.F) {
 }
 
 // FuzzDecodeAny feeds arbitrary bytes to the lib0-Any value decoder.
-// Any payloads carry attacker-controlled length prefixes (strings,
+// Any pathreadloads carry attacker-controlled length prefixes (strings,
 // byte buffers, and recursive array/object counts), so this guards the
 // amplification surface directly instead of only through a full update.
 // No panic, hang, or OOM; an error is the expected outcome for
@@ -212,7 +212,7 @@ func FuzzDecodeIdSet(f *testing.F) {
 }
 
 // validV2Update builds a real V2 update from a populated doc so the
-// seed corpus contains a fully-formed multi-column payload.
+// seed corpus contains a fully-formed multi-column pathreadload.
 func validV2Update() []byte {
 	d := doc.NewDocWithOptions(doc.Options{ClientID: 7})
 	m := types.NewMap(d.Branch("settings"))

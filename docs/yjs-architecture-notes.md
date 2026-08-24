@@ -99,7 +99,7 @@ Local edits arrive as document-position offsets and must be resolved to an Item 
 
 ## 5. Content variants
 
-Yrs/Yjs encode the payload of an Item via a tagged union. Variants explicitly mentioned across sources:
+Yrs/Yjs encode the pathreadload of an Item via a tagged union. Variants explicitly mentioned across sources:
 
 - **String** — runs of characters, used by Y.Text and as Map values. Splittable per character [Sypytkowski].
 - **Embedded plain object** — JSON-ish primitive (number, string, boolean, plain object) stored verbatim as a single non-CRDT value [Sypytkowski].
@@ -179,7 +179,7 @@ Optimizations [Sypytkowski]:
 
 ### V2
 
-An "Automerge-influenced" format that adds **column-oriented run-length encoding** over many fields, yielding much smaller payloads on bulk updates [Sypytkowski]. Same logical content, different physical layout. V2 has its own encoder/decoder pair.
+An "Automerge-influenced" format that adds **column-oriented run-length encoding** over many fields, yielding much smaller pathreadloads on bulk updates [Sypytkowski]. Same logical content, different physical layout. V2 has its own encoder/decoder pair.
 
 **Porting traps**:
 
@@ -320,7 +320,7 @@ event.changes.keys      // Map<string, { action: 'add'|'update'|'delete', oldVal
 ]
 ```
 
-[docs.yjs.dev]. Detailed payload structure for `event.changes` on Y.Text is marked `[todo]` upstream [docs.yjs.dev]; treat the delta as authoritative.
+[docs.yjs.dev]. Detailed pathreadload structure for `event.changes` on Y.Text is marked `[todo]` upstream [docs.yjs.dev]; treat the delta as authoritative.
 
 ---
 
@@ -331,7 +331,7 @@ Implemented in `y-protocols` [INTERNALS]:
 1. **Sync step 1**: peer A sends `encodeStateVector(docA)` to peer B.
 2. **Sync step 2**: peer B replies with `encodeStateAsUpdate(docB, sv_from_A)` — the minimal set of Items + delete set that A is missing.
 3. (Bidirectional symmetry: A also responds to B with what B is missing, derived from B's SV.)
-4. Live updates: after each local transaction commits, the doc emits an `update` event whose payload is the V1 (or V2) bytes; clients broadcast these.
+4. Live updates: after each local transaction commits, the doc emits an `update` event whose pathreadload is the V1 (or V2) bytes; clients broadcast these.
 
 Awareness protocol (cursor positions, presence) is a **separate** protocol layered on top, not part of the CRDT [INTERNALS, by absence — and confirmed by the `y-protocols` split]. **NOT-IN-SOURCES** in fetched material.
 

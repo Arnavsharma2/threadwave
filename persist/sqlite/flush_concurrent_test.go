@@ -7,11 +7,11 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/internal/encoding"
-	"github.com/Deln0r/ygo/internal/types"
-	"github.com/Deln0r/ygo/persist"
-	"github.com/Deln0r/ygo/persist/sqlite"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/encoding"
+	"github.com/Arnavsharma2/threadwave/internal/types"
+	"github.com/Arnavsharma2/threadwave/persist"
+	"github.com/Arnavsharma2/threadwave/persist/sqlite"
 )
 
 // mapUpdate builds a valid single-key V1 update from an independent doc

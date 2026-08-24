@@ -1,4 +1,4 @@
-package ygo_test
+package threadwave_test
 
 import (
 	"encoding/hex"
@@ -7,14 +7,14 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Deln0r/ygo"
+	"github.com/Arnavsharma2/threadwave"
 )
 
 // TestSubdoc_SetGet_RoundTrip nests a subdoc, syncs the parent to a
 // fresh replica, and confirms the subdoc reference (its GUID) survives.
 func TestSubdoc_SetGet_RoundTrip(t *testing.T) {
-	d := ygo.NewDoc()
-	m := ygo.NewMap(d, "m")
+	d := threadwave.NewDoc()
+	m := threadwave.NewMap(d, "m")
 
 	txn := d.WriteTxn()
 	sub := m.SetDoc(txn, "child")
@@ -30,11 +30,11 @@ func TestSubdoc_SetGet_RoundTrip(t *testing.T) {
 	}
 
 	// Sync to a fresh replica and read the reference back.
-	d2 := ygo.NewDoc()
-	if err := ygo.ApplyUpdate(d2, ygo.EncodeStateAsUpdate(d)); err != nil {
+	d2 := threadwave.NewDoc()
+	if err := threadwave.ApplyUpdate(d2, threadwave.EncodeStateAsUpdate(d)); err != nil {
 		t.Fatalf("apply: %v", err)
 	}
-	m2 := ygo.NewMap(d2, "m")
+	m2 := threadwave.NewMap(d2, "m")
 	got2, ok := m2.GetDoc(d2, "child")
 	if !ok {
 		t.Fatal("GetDoc after sync: not found")
@@ -46,8 +46,8 @@ func TestSubdoc_SetGet_RoundTrip(t *testing.T) {
 
 // TestSubdoc_Missing confirms GetDoc on absent or non-doc keys.
 func TestSubdoc_Missing(t *testing.T) {
-	d := ygo.NewDoc()
-	m := ygo.NewMap(d, "m")
+	d := threadwave.NewDoc()
+	m := threadwave.NewMap(d, "m")
 	txn := d.WriteTxn()
 	m.Set(txn, "scalar", "v")
 	txn.Commit()
@@ -63,8 +63,8 @@ func TestSubdoc_Missing(t *testing.T) {
 // TestSubdoc_TwoSubdocs nests two distinct subdocs and checks their
 // GUIDs are independent and stable across a sync.
 func TestSubdoc_TwoSubdocs(t *testing.T) {
-	d := ygo.NewDoc()
-	m := ygo.NewMap(d, "m")
+	d := threadwave.NewDoc()
+	m := threadwave.NewMap(d, "m")
 	txn := d.WriteTxn()
 	a := m.SetDoc(txn, "a")
 	b := m.SetDoc(txn, "b")
@@ -73,11 +73,11 @@ func TestSubdoc_TwoSubdocs(t *testing.T) {
 		t.Fatal("distinct subdocs share a GUID")
 	}
 
-	d2 := ygo.NewDoc()
-	if err := ygo.ApplyUpdate(d2, ygo.EncodeStateAsUpdate(d)); err != nil {
+	d2 := threadwave.NewDoc()
+	if err := threadwave.ApplyUpdate(d2, threadwave.EncodeStateAsUpdate(d)); err != nil {
 		t.Fatalf("apply: %v", err)
 	}
-	m2 := ygo.NewMap(d2, "m")
+	m2 := threadwave.NewMap(d2, "m")
 	ga, _ := m2.GetDoc(d2, "a")
 	gb, _ := m2.GetDoc(d2, "b")
 	if ga.GUID() != a.GUID() || gb.GUID() != b.GUID() {
@@ -97,7 +97,7 @@ type subdocFixture struct {
 	ExpectGUID  map[string]string `json:"expect_guids"`
 }
 
-// TestSubdoc_CrossLanguage proves ygo's ContentDoc codec is byte-
+// TestSubdoc_CrossLanguage proves threadwave's ContentDoc codec is byte-
 // compatible with yjs@13.6.31. For each yjs-produced parent update we:
 //  1. ApplyUpdate to a fresh doc.
 //  2. Read each subdoc GUID back via Map.GetDoc and check it.
@@ -126,12 +126,12 @@ func TestSubdoc_CrossLanguage(t *testing.T) {
 				t.Fatalf("bad hex: %v", err)
 			}
 
-			d := ygo.NewDoc()
-			if err := ygo.ApplyUpdate(d, want); err != nil {
+			d := threadwave.NewDoc()
+			if err := threadwave.ApplyUpdate(d, want); err != nil {
 				t.Fatalf("ApplyUpdate: %v", err)
 			}
 
-			m := ygo.NewMap(d, sc.RootName)
+			m := threadwave.NewMap(d, sc.RootName)
 			for key, guid := range sc.ExpectGUID {
 				sub, ok := m.GetDoc(d, key)
 				if !ok {
@@ -143,7 +143,7 @@ func TestSubdoc_CrossLanguage(t *testing.T) {
 				}
 			}
 
-			got := ygo.EncodeStateAsUpdate(d)
+			got := threadwave.EncodeStateAsUpdate(d)
 			if hex.EncodeToString(got) != sc.UpdateHex {
 				t.Errorf("re-encode mismatch\n got: %s\nwant: %s",
 					hex.EncodeToString(got), sc.UpdateHex)

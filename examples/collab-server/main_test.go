@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/Deln0r/ygo/server"
+	"github.com/Arnavsharma2/threadwave/server"
 )
 
 // TestExample_StatsEndpoint verifies the example wires up: the in-memory

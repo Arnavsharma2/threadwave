@@ -72,7 +72,7 @@ pub struct Item {
     pub(crate) right:        Option<ItemPtr>,   // resolved right neighbour (None = last; for maps: most-recent value)
     pub(crate) origin:       Option<ID>,        // ID of left at insertion-time (conflict resolution)
     pub(crate) right_origin: Option<ID>,        // ID of right at insertion-time
-    pub(crate) content:      ItemContent,       // user payload, tagged union
+    pub(crate) content:      ItemContent,       // user pathreadload, tagged union
     pub(crate) parent:       TypePtr,           // owning collection
     pub(crate) redone:       Option<ID>,        // UndoManager: ID of the item that revived this one
     pub(crate) parent_sub:   Option<Arc<str>>,  // map key, when parent is map-like

@@ -1,4 +1,4 @@
-// Package backplane fans document updates between ygo server instances
+// Package backplane fans document updates between threadwave server instances
 // that share a document, so several horizontally-scaled servers behind a
 // load balancer converge on the same document.
 //

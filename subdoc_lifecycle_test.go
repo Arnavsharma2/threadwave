@@ -1,18 +1,18 @@
-package ygo_test
+package threadwave_test
 
 import (
 	"testing"
 
-	"github.com/Deln0r/ygo"
+	"github.com/Arnavsharma2/threadwave"
 )
 
 // TestSubdocLifecycle_AddedEvent fires when a subdoc is nested.
 func TestSubdocLifecycle_AddedEvent(t *testing.T) {
-	d := ygo.NewDoc()
-	m := ygo.NewMap(d, "m")
+	d := threadwave.NewDoc()
+	m := threadwave.NewMap(d, "m")
 
-	var events []ygo.SubdocsEvent
-	unsub := d.OnSubdocs(func(e ygo.SubdocsEvent) { events = append(events, e) })
+	var events []threadwave.SubdocsEvent
+	unsub := d.OnSubdocs(func(e threadwave.SubdocsEvent) { events = append(events, e) })
 	defer unsub()
 
 	txn := d.WriteTxn()
@@ -33,8 +33,8 @@ func TestSubdocLifecycle_AddedEvent(t *testing.T) {
 // TestSubdocLifecycle_AutoLoad surfaces a loaded GUID when the reference
 // carries autoLoad, including across a sync to a fresh replica.
 func TestSubdocLifecycle_AutoLoad(t *testing.T) {
-	d := ygo.NewDoc()
-	m := ygo.NewMap(d, "m")
+	d := threadwave.NewDoc()
+	m := threadwave.NewMap(d, "m")
 	txn := d.WriteTxn()
 	sub := m.SetDocWithOptions(txn, "child", true) // autoLoad
 	txn.Commit()
@@ -43,11 +43,11 @@ func TestSubdocLifecycle_AutoLoad(t *testing.T) {
 	}
 
 	// On a fresh replica that decodes the update, autoLoad is honoured.
-	d2 := ygo.NewDoc()
-	var ev []ygo.SubdocsEvent
-	unsub := d2.OnSubdocs(func(e ygo.SubdocsEvent) { ev = append(ev, e) })
+	d2 := threadwave.NewDoc()
+	var ev []threadwave.SubdocsEvent
+	unsub := d2.OnSubdocs(func(e threadwave.SubdocsEvent) { ev = append(ev, e) })
 	defer unsub()
-	if err := ygo.ApplyUpdate(d2, ygo.EncodeStateAsUpdate(d)); err != nil {
+	if err := threadwave.ApplyUpdate(d2, threadwave.EncodeStateAsUpdate(d)); err != nil {
 		t.Fatalf("apply: %v", err)
 	}
 	if len(ev) != 1 || len(ev[0].Loaded) != 1 || ev[0].Loaded[0] != sub.GUID() {
@@ -58,8 +58,8 @@ func TestSubdocLifecycle_AutoLoad(t *testing.T) {
 // TestSubdocLifecycle_LoadTriggersLoaded confirms explicit Load shows up
 // in a subsequent transaction's Loaded set.
 func TestSubdocLifecycle_ManualLoad(t *testing.T) {
-	d := ygo.NewDoc()
-	m := ygo.NewMap(d, "m")
+	d := threadwave.NewDoc()
+	m := threadwave.NewMap(d, "m")
 	txn := d.WriteTxn()
 	sub := m.SetDoc(txn, "child") // no autoLoad
 	txn.Commit()
@@ -77,11 +77,11 @@ func TestSubdocLifecycle_ManualLoad(t *testing.T) {
 // Mirrors yjs ContentDoc.delete removing the GUID from subdocsAdded
 // without ever reaching subdocsRemoved.
 func TestSubdocLifecycle_SameTxnAddRemove(t *testing.T) {
-	d := ygo.NewDoc()
-	m := ygo.NewMap(d, "m")
+	d := threadwave.NewDoc()
+	m := threadwave.NewMap(d, "m")
 
-	var ev []ygo.SubdocsEvent
-	unsub := d.OnSubdocs(func(e ygo.SubdocsEvent) { ev = append(ev, e) })
+	var ev []threadwave.SubdocsEvent
+	unsub := d.OnSubdocs(func(e threadwave.SubdocsEvent) { ev = append(ev, e) })
 	defer unsub()
 
 	txn := d.WriteTxn()
@@ -101,15 +101,15 @@ func TestSubdocLifecycle_SameTxnAddRemove(t *testing.T) {
 // key tombstones the old reference (Removed) and surfaces the new one
 // (Added), and that the stale handle is dropped from the registry.
 func TestSubdocLifecycle_SameKeyOverwrite(t *testing.T) {
-	d := ygo.NewDoc()
-	m := ygo.NewMap(d, "m")
+	d := threadwave.NewDoc()
+	m := threadwave.NewMap(d, "m")
 
 	txn := d.WriteTxn()
 	first := m.SetDoc(txn, "child")
 	txn.Commit()
 
-	var ev []ygo.SubdocsEvent
-	unsub := d.OnSubdocs(func(e ygo.SubdocsEvent) { ev = append(ev, e) })
+	var ev []threadwave.SubdocsEvent
+	unsub := d.OnSubdocs(func(e threadwave.SubdocsEvent) { ev = append(ev, e) })
 	defer unsub()
 
 	txn = d.WriteTxn()
@@ -134,14 +134,14 @@ func TestSubdocLifecycle_SameKeyOverwrite(t *testing.T) {
 
 // TestSubdocLifecycle_RemovedEvent fires when the reference is deleted.
 func TestSubdocLifecycle_RemovedEvent(t *testing.T) {
-	d := ygo.NewDoc()
-	m := ygo.NewMap(d, "m")
+	d := threadwave.NewDoc()
+	m := threadwave.NewMap(d, "m")
 	txn := d.WriteTxn()
 	sub := m.SetDoc(txn, "child")
 	txn.Commit()
 
-	var ev []ygo.SubdocsEvent
-	unsub := d.OnSubdocs(func(e ygo.SubdocsEvent) { ev = append(ev, e) })
+	var ev []threadwave.SubdocsEvent
+	unsub := d.OnSubdocs(func(e threadwave.SubdocsEvent) { ev = append(ev, e) })
 	defer unsub()
 
 	txn = d.WriteTxn()

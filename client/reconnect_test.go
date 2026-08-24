@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Deln0r/ygo/client"
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/server"
+	"github.com/Arnavsharma2/threadwave/client"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/server"
 )
 
 // trackingListener wraps a net.Listener, remembering every accepted

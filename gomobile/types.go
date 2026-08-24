@@ -3,9 +3,9 @@ package gomobile
 import (
 	"fmt"
 
-	"github.com/Deln0r/ygo/internal/block"
-	"github.com/Deln0r/ygo/internal/types"
-	"github.com/Deln0r/ygo/internal/undo"
+	"github.com/Arnavsharma2/threadwave/internal/block"
+	"github.com/Arnavsharma2/threadwave/internal/types"
+	"github.com/Arnavsharma2/threadwave/internal/undo"
 )
 
 // Text is the gomobile-bindable handle for a shared text type: the

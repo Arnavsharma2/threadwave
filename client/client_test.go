@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Deln0r/ygo/client"
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/internal/types"
-	"github.com/Deln0r/ygo/server"
+	"github.com/Arnavsharma2/threadwave/client"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/types"
+	"github.com/Arnavsharma2/threadwave/server"
 )
 
 func startServer(t *testing.T) string {

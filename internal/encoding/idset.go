@@ -3,7 +3,7 @@ package encoding
 import (
 	"sort"
 
-	"github.com/Deln0r/ygo/internal/lib0"
+	"github.com/Arnavsharma2/threadwave/internal/lib0"
 )
 
 // Range is a half-open clock interval [Start, Start+Length). The wire

@@ -1,16 +1,16 @@
-package ygo_test
+package threadwave_test
 
 import (
 	"fmt"
 
-	"github.com/Deln0r/ygo"
+	"github.com/Arnavsharma2/threadwave"
 )
 
 // Example is the basic shape: create a document, edit a shared type
 // inside a write transaction, and read the value back.
 func Example() {
-	doc := ygo.NewDoc()
-	settings := ygo.NewMap(doc, "settings")
+	doc := threadwave.NewDoc()
+	settings := threadwave.NewMap(doc, "settings")
 
 	txn := doc.WriteTxn()
 	settings.Set(txn, "theme", "dark")
@@ -27,8 +27,8 @@ func Example() {
 // Example_array shows the shared Array: an ordered sequence you append to
 // and read positionally.
 func Example_array() {
-	doc := ygo.NewDoc()
-	todo := ygo.NewArray(doc, "todo")
+	doc := threadwave.NewDoc()
+	todo := threadwave.NewArray(doc, "todo")
 
 	txn := doc.WriteTxn()
 	todo.Push(txn, "buy milk", "write code")
@@ -46,8 +46,8 @@ func Example_array() {
 // Example_text shows the shared Text: a collaborative string edited by
 // index. Inserts commute so concurrent edits converge.
 func Example_text() {
-	doc := ygo.NewDoc()
-	note := ygo.NewText(doc, "note")
+	doc := threadwave.NewDoc()
+	note := threadwave.NewText(doc, "note")
 
 	txn := doc.WriteTxn()
 	_ = note.Insert(txn, 0, "world")
@@ -64,24 +64,24 @@ func Example_text() {
 // same merged state, independent of order.
 func Example_sync() {
 	// Peer A sets a title on its copy.
-	a := ygo.NewDoc()
-	am := ygo.NewMap(a, "doc")
+	a := threadwave.NewDoc()
+	am := threadwave.NewMap(a, "doc")
 	wa := a.WriteTxn()
 	am.Set(wa, "title", "Hello")
 	wa.Commit()
 
 	// Peer B sets a different key on its own copy.
-	b := ygo.NewDoc()
-	bm := ygo.NewMap(b, "doc")
+	b := threadwave.NewDoc()
+	bm := threadwave.NewMap(b, "doc")
 	wb := b.WriteTxn()
 	bm.Set(wb, "author", "Ada")
 	wb.Commit()
 
 	// Exchange full-state updates and apply each to the other.
-	if err := ygo.ApplyUpdate(a, ygo.EncodeStateAsUpdate(b)); err != nil {
+	if err := threadwave.ApplyUpdate(a, threadwave.EncodeStateAsUpdate(b)); err != nil {
 		panic(err)
 	}
-	if err := ygo.ApplyUpdate(b, ygo.EncodeStateAsUpdate(a)); err != nil {
+	if err := threadwave.ApplyUpdate(b, threadwave.EncodeStateAsUpdate(a)); err != nil {
 		panic(err)
 	}
 
@@ -96,9 +96,9 @@ func Example_sync() {
 // Example_undo shows the built-in UndoManager: track a shared type, edit
 // it, then step backward and forward through the edit history.
 func Example_undo() {
-	doc := ygo.NewDoc()
-	m := ygo.NewMap(doc, "doc")
-	undo := ygo.NewUndoManager(doc, m)
+	doc := threadwave.NewDoc()
+	m := threadwave.NewMap(doc, "doc")
+	undo := threadwave.NewUndoManager(doc, m)
 
 	txn := doc.WriteTxn()
 	m.Set(txn, "title", "draft")

@@ -4,8 +4,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Deln0r/ygo/internal/block"
-	"github.com/Deln0r/ygo/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/block"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
 )
 
 // XmlFragment is a root container of XmlElement and XmlText

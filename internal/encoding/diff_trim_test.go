@@ -3,9 +3,9 @@ package encoding
 import (
 	"testing"
 
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/internal/store"
-	"github.com/Deln0r/ygo/internal/types"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/store"
+	"github.com/Arnavsharma2/threadwave/internal/types"
 )
 
 // TestEncodeDiff_SliceTrim_DropsFullyKnownClients verifies that
@@ -47,7 +47,7 @@ func TestEncodeDiff_SliceTrim_DropsFullyKnownClients(t *testing.T) {
 	if len(diff) >= len(full) {
 		t.Errorf("slice-trim ineffective: diff=%d bytes, full=%d bytes", len(diff), len(full))
 	}
-	// Diff should be roughly half-ish (5 ops vs 10), not the full payload.
+	// Diff should be roughly half-ish (5 ops vs 10), not the full pathreadload.
 	if float64(len(diff)) > 0.6*float64(len(full)) {
 		t.Errorf("slice-trim too weak: diff=%d bytes vs full=%d bytes; expected <60%% of full",
 			len(diff), len(full))

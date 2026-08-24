@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Deln0r/ygo"
+	"github.com/Arnavsharma2/threadwave"
 )
 
 // b4Edit is one record from the dmonad/crdt-benchmarks B4 trace:
@@ -68,9 +68,9 @@ func unpackEdit(e b4Edit) (pos uint64, delLen uint64, ins string) {
 func BenchmarkB4_RealWorldTrace(b *testing.B) {
 	tf, _ := loadB4Trace(b)
 
-	build := func() *ygo.Doc {
-		d := ygo.NewDocWithOptions(ygo.Options{ClientID: 1})
-		t := ygo.NewText(d, "text")
+	build := func() *threadwave.Doc {
+		d := threadwave.NewDocWithOptions(threadwave.Options{ClientID: 1})
+		t := threadwave.NewText(d, "text")
 		txn := d.WriteTxn()
 		for _, e := range tf.Edits {
 			pos, delLen, ins := unpackEdit(e)
@@ -87,7 +87,7 @@ func BenchmarkB4_RealWorldTrace(b *testing.B) {
 
 	// Sanity-check the final text once before the timed run.
 	d := build()
-	tCheck := ygo.NewText(d, "text")
+	tCheck := threadwave.NewText(d, "text")
 	if got := tCheck.String(); got != tf.FinalText {
 		b.Fatalf("final text mismatch: got %d chars, want %d chars",
 			len(got), len(tf.FinalText))

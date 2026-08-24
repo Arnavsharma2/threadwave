@@ -713,9 +713,9 @@ Note: **try_squash does not update `parent.map` or `parent.start`**. It assumes 
 ```
 
 Squashable variants:
-- **Any** — append the `Vec<Any>` payloads.
+- **Any** — append the `Vec<Any>` pathreadloads.
 - **Deleted** — sum the lengths (it's a tombstone-run length).
-- **JSON** — append the `Vec<String>` payloads.
+- **JSON** — append the `Vec<String>` pathreadloads.
 - **String** — UTF-8 string concat (yrs uses `SmallString`).
 
 Non-squashable: **Binary, Embed, Format, Type, Doc, Move**. Each is "one item per". Embeds and binaries are atomic per-insert; Format markers carry attribute deltas that don't combine; Type/Doc/Move are per-instance.

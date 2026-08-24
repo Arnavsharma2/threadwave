@@ -1,15 +1,15 @@
-# NATS backplane for ygo
+# NATS backplane for threadwave
 
-A [NATS](https://nats.io)-backed `backplane.Backplane` so several ygo servers
+A [NATS](https://nats.io)-backed `backplane.Backplane` so several threadwave servers
 behind a load balancer converge on the same document. It is a **separate Go
-module** (`github.com/Deln0r/ygo/server/backplane/nats`) so the ygo core stays
+module** (`github.com/Arnavsharma2/threadwave/server/backplane/nats`) so the threadwave core stays
 dependency-free; import it only if you want NATS clustering.
 
 ```go
 import (
     "github.com/nats-io/nats.go"
-    "github.com/Deln0r/ygo/server"
-    natsbp "github.com/Deln0r/ygo/server/backplane/nats"
+    "github.com/Arnavsharma2/threadwave/server"
+    natsbp "github.com/Arnavsharma2/threadwave/server/backplane/nats"
 )
 
 nc, err := nats.Connect("nats://nats.internal:4222")
@@ -50,13 +50,13 @@ No-loss is bounded by the stream's retention (`WithJSMaxAge`, default 10m): a
 reconnect or restart within that window redelivers everything published during
 the outage; a longer outage prunes older deltas, which the shared Store then
 backfills when the document next loads (as with the core adapter). A reset may
-redeliver a message, so duplicates are possible and harmless: applying a ygo
+redeliver a message, so duplicates are possible and harmless: applying a threadwave
 update is idempotent and commutative, as is an awareness update
 (last-writer-wins by clock).
 
 The stream is file-backed, so it and its data survive a JetStream server
 restart. Options: `WithJSPrefix` (subject prefix), `WithStreamName` (default
-`YGO_BACKPLANE_<prefix>`), `WithJSMaxAge` (retention / loss-free reconnect
+`THREADWAVE_BACKPLANE_<prefix>`), `WithJSMaxAge` (retention / loss-free reconnect
 window, default 10m). `WithJSMaxAge` is **stream-wide** and takes effect only on
 the instance that first creates the stream; later instances reuse the existing
 stream and never rewrite its config. The stream captures `<prefix>.>`;
@@ -97,6 +97,6 @@ the connection (both caller-owned) intact.
   client actually holds the missing delta (the server does not re-request gaps).
   Where silent, persistent single-instance divergence on a dropped delta is
   unacceptable, use `NewJetStream` (at-least-once) instead of `New`.
-- **Presence/awareness IS carried.** Payloads are opaque to the adapter, so the
+- **Presence/awareness IS carried.** Pathreadloads are opaque to the adapter, so the
   server's presence updates relay across instances like document updates (this
-  changed in ygo v1.15.0; earlier the backplane carried documents only).
+  changed in threadwave v1.15.0; earlier the backplane carried documents only).

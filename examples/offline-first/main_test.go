@@ -4,7 +4,7 @@ import (
 	"net"
 	"testing"
 
-	"github.com/Deln0r/ygo/persist/sqlite"
+	"github.com/Arnavsharma2/threadwave/persist/sqlite"
 )
 
 // deadURL returns a ws:// URL nothing listens on (bound then freed), so

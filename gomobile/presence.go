@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"github.com/Deln0r/ygo/client"
-	"github.com/Deln0r/ygo/internal/awareness"
+	"github.com/Arnavsharma2/threadwave/client"
+	"github.com/Arnavsharma2/threadwave/internal/awareness"
 )
 
 // PresenceListener receives the room's presence (awareness) snapshot

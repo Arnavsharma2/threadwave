@@ -1,6 +1,6 @@
 # offline-first example
 
-Demonstrates the ygo client's **offline-first** persistence: with a
+Demonstrates the threadwave client's **offline-first** persistence: with a
 `LocalStore`, the document loads from disk before any network, stays
 editable with no server reachable, and carries offline edits up to the
 server on the next successful connect.

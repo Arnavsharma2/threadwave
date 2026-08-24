@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/internal/encoding"
-	"github.com/Deln0r/ygo/internal/types"
-	"github.com/Deln0r/ygo/persist"
-	"github.com/Deln0r/ygo/persist/sqlite"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/encoding"
+	"github.com/Arnavsharma2/threadwave/internal/types"
+	"github.com/Arnavsharma2/threadwave/persist"
+	"github.com/Arnavsharma2/threadwave/persist/sqlite"
 )
 
 func mapSetUpdate(t *testing.T, clientID uint64, key, value string) []byte {

@@ -11,10 +11,10 @@ import (
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 
-	"github.com/Deln0r/ygo/server/backplane"
+	"github.com/Arnavsharma2/threadwave/server/backplane"
 )
 
-// Compile-time guarantee that the JetStream adapter satisfies the ygo
+// Compile-time guarantee that the JetStream adapter satisfies the threadwave
 // Backplane contract, like the core-NATS adapter.
 var _ backplane.Backplane = (*JetStream)(nil)
 
@@ -22,7 +22,7 @@ var _ backplane.Backplane = (*JetStream)(nil)
 // WithStreamName is not given, the stream is named DefaultStreamName + "_" +
 // the (sanitized) subject prefix, so deployments that use different prefixes on
 // one NATS system do not collide on a single stream.
-const DefaultStreamName = "YGO_BACKPLANE"
+const DefaultStreamName = "THREADWAVE_BACKPLANE"
 
 const (
 	// defaultJSMaxAge bounds how long a relayed delta is retained in the
@@ -35,7 +35,7 @@ const (
 	streamOpTimeout = 10 * time.Second
 )
 
-// JetStream is a JetStream-backed Backplane for the ygo server. Unlike the
+// JetStream is a JetStream-backed Backplane for the threadwave server. Unlike the
 // core-NATS Backplane (at-most-once, fire-and-forget), it publishes each update
 // into a persistent (file-backed) stream and consumes it with a JetStream
 // ordered consumer, which the client automatically recreates and RESUMES from
@@ -51,7 +51,7 @@ const (
 // during the outage; a longer outage prunes older deltas from the stream, and
 // those are backstopped by the shared Store when the document next loads (as
 // with the core adapter). A consumer reset may redeliver from its resume point,
-// so a message can arrive more than once; this is safe because applying a ygo
+// so a message can arrive more than once; this is safe because applying a threadwave
 // update is idempotent and commutative (a duplicate is a no-op), as is an
 // awareness update (last-writer-wins by clock).
 //
@@ -77,7 +77,7 @@ type jsSub struct {
 // JSOption configures a JetStream backplane.
 type JSOption func(*JetStream)
 
-// WithJSPrefix sets the NATS subject prefix (default "ygo"). Every instance
+// WithJSPrefix sets the NATS subject prefix (default "threadwave"). Every instance
 // sharing documents must use the same prefix, and the stream must capture it.
 func WithJSPrefix(p string) JSOption { return func(j *JetStream) { j.prefix = p } }
 

@@ -1,9 +1,9 @@
-# yserve — self-hosted Yjs sync server, single static binary.
+# threadserve — self-hosted Yjs sync server, single static binary.
 #
-#   docker build -t yserve .
-#   docker run -p 8080:8080 -v yserve-data:/data yserve
+#   docker build -t threadserve .
+#   docker run -p 8080:8080 -v threadserve-data:/data threadserve
 #
-# The image is FROM scratch: ygo is pure Go (no CGO, SQLite included
+# The image is FROM scratch: threadwave is pure Go (no CGO, SQLite included
 # via modernc.org/sqlite), so the binary needs no libc and the final
 # image is just the binary plus CA roots.
 
@@ -12,12 +12,12 @@ WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /yserve ./cmd/yserve
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /threadserve ./cmd/threadserve
 
 FROM scratch
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=build /yserve /yserve
+COPY --from=build /threadserve /threadserve
 VOLUME /data
 EXPOSE 8080
-ENTRYPOINT ["/yserve"]
-CMD ["-addr", ":8080", "-store", "/data/ygo.db", "-version-interval", "10m", "-keep-versions", "10"]
+ENTRYPOINT ["/threadserve"]
+CMD ["-addr", ":8080", "-store", "/data/threadwave.db", "-version-interval", "10m", "-keep-versions", "10"]

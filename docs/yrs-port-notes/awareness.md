@@ -30,7 +30,7 @@ pub struct ClientState {
 }
 ```
 
-`AwarenessUpdate` / `AwarenessUpdateEntry` are the wire-encodable payload types (`awareness.rs:533-573`):
+`AwarenessUpdate` / `AwarenessUpdateEntry` are the wire-encodable pathreadload types (`awareness.rs:533-573`):
 
 ```rust
 pub struct AwarenessUpdate {
@@ -87,9 +87,9 @@ fn encode<E: Encoder>(&self, encoder: &mut E) {
 }
 ```
 
-Note the Rust `ClientState.data: Option<Arc<str>>` and `AwarenessUpdateEntry.json: Arc<str>` are deliberately **un-parsed** strings — yrs treats the JSON payload as an opaque blob, only round-tripping it through `serde_json` at the API boundary (`awareness.rs:183-186` `local_state`, `:217-221` `state`, `:239-243` `set_local_state`). The `NULL_STR: &str = "null"` sentinel (`awareness.rs:15`) is the literal four-byte string `"null"` written via `write_string` — i.e. on the wire it is `varuint(4) • 0x6E 0x75 0x6C 0x6C`. That is JSON-`null`, NOT a lib0 Any-null type-tag (which would be a single byte `126` per the lib0 Any spec).
+Note the Rust `ClientState.data: Option<Arc<str>>` and `AwarenessUpdateEntry.json: Arc<str>` are deliberately **un-parsed** strings — yrs treats the JSON pathreadload as an opaque blob, only round-tripping it through `serde_json` at the API boundary (`awareness.rs:183-186` `local_state`, `:217-221` `state`, `:239-243` `set_local_state`). The `NULL_STR: &str = "null"` sentinel (`awareness.rs:15`) is the literal four-byte string `"null"` written via `write_string` — i.e. on the wire it is `varuint(4) • 0x6E 0x75 0x6C 0x6C`. That is JSON-`null`, NOT a lib0 Any-null type-tag (which would be a single byte `126` per the lib0 Any spec).
 
-**Recommendation for Go: follow JS y-protocols exactly.** Store `data` as `[]byte` (the raw JSON bytes) or `string`, and provide a typed `SetLocalState(v any) error` helper that calls `json.Marshal` and a `GetState[T any](clientID uint64) (T, error)` helper that calls `json.Unmarshal`. Do not invoke lib0 Any encoding for the state payload. Any JS-yrs interop fixture that did otherwise would not round-trip through a real JS Yjs server (Hocuspocus, y-websocket).
+**Recommendation for Go: follow JS y-protocols exactly.** Store `data` as `[]byte` (the raw JSON bytes) or `string`, and provide a typed `SetLocalState(v any) error` helper that calls `json.Marshal` and a `GetState[T any](clientID uint64) (T, error)` helper that calls `json.Unmarshal`. Do not invoke lib0 Any encoding for the state pathreadload. Any JS-yrs interop fixture that did otherwise would not round-trip through a real JS Yjs server (Hocuspocus, y-websocket).
 
 ---
 
@@ -110,7 +110,7 @@ Iteration order: **not specified, not canonicalized**. JS iterates the `clients`
 
 No header, no version byte, no length prefix outside the leading `varuint(client_count)`. Empty update = single byte `0x00`.
 
-When the payload is embedded inside the composite-protocol envelope (`PROTOCOL.md:107-119`), the framing is:
+When the pathreadload is embedded inside the composite-protocol envelope (`PROTOCOL.md:107-119`), the framing is:
 ```
 varuint(1)                              // AwarenessProtocol message-type tag
 • varbuffer(AwarenessUpdate)            // varuint(len) • bytes
@@ -157,7 +157,7 @@ Both implementations expose two parallel channels:
 | `update` | `awareness.js:139,190,295-299` | `awareness.rs:292,466` `on_update` | every applied entry, even no-op deep-equal re-broadcasts |
 | `change` | `awareness.js:137,189,290-294` | `awareness.rs:288,463` `on_change` | only when the JSON state content actually differs from previous |
 
-Payload shape: `{ added: ClientID[], updated: ClientID[], removed: ClientID[] }` plus an `origin` tag. The `origin` parameter mirrors `TransactionMut::Origin` from the document layer — used to distinguish `'local'` (`awareness.js:137,139`) from remote-applied (caller-supplied at `applyAwarenessUpdate(awareness, update, origin)` `awareness.js:246`). yrs `Origin` (`awareness.rs:13` import) is the same opaque-byte-tag type as transactions use; passed through `apply_update_with` / `apply_update_summary_with` (`:351-386`).
+Pathreadload shape: `{ added: ClientID[], updated: ClientID[], removed: ClientID[] }` plus an `origin` tag. The `origin` parameter mirrors `TransactionMut::Origin` from the document layer — used to distinguish `'local'` (`awareness.js:137,139`) from remote-applied (caller-supplied at `applyAwarenessUpdate(awareness, update, origin)` `awareness.js:246`). yrs `Origin` (`awareness.rs:13` import) is the same opaque-byte-tag type as transactions use; passed through `apply_update_with` / `apply_update_summary_with` (`:351-386`).
 
 The `change`-vs-`update` distinction matters in practice: UI redraws should subscribe to `change` (avoid redraws on heartbeats), debug logging should subscribe to `update` (see all traffic).
 

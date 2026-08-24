@@ -1,9 +1,9 @@
-module github.com/Deln0r/ygo/server/backplane/nats
+module github.com/Arnavsharma2/threadwave/server/backplane/nats
 
 go 1.25.0
 
 require (
-	github.com/Deln0r/ygo v1.14.0
+	github.com/Arnavsharma2/threadwave v0.0.0
 	github.com/nats-io/nats-server/v2 v2.14.3
 	github.com/nats-io/nats.go v1.52.0
 )
@@ -22,4 +22,4 @@ require (
 	golang.org/x/time v0.15.0 // indirect
 )
 
-replace github.com/Deln0r/ygo => ../../..
+replace github.com/Arnavsharma2/threadwave => ../../..

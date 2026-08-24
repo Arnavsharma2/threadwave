@@ -1,4 +1,4 @@
-// Generates testdata/lib0.json — encoding fixtures for ygo's internal/lib0 package.
+// Generates testdata/lib0.json — encoding fixtures for threadwave's internal/lib0 package.
 //
 // Each case captures: input value, kind discriminator, and the exact bytes the
 // JS lib0 reference emits. Go tests assert byte equality on encode and value

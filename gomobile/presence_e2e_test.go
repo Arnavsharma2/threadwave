@@ -7,7 +7,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Deln0r/ygo/gomobile"
+	"github.com/Arnavsharma2/threadwave/gomobile"
 )
 
 // presenceRec implements gomobile.PresenceListener, keeping the latest

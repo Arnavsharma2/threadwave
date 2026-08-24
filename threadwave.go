@@ -1,33 +1,33 @@
-package ygo
+package threadwave
 
-// Public API surface for the ygo CRDT framework.
+// Public API surface for the threadwave CRDT framework.
 //
-// External Go code imports `github.com/Deln0r/ygo` and uses the
+// External Go code imports `github.com/Arnavsharma2/threadwave` and uses the
 // types and functions re-exported here. The implementation lives
 // under internal/* — the aliases below pin those internal types
 // to a stable name so callers do not need to know the package
 // layout. For sub-systems with their own concerns (persistence,
 // WebSocket server) see:
 //
-//   - github.com/Deln0r/ygo/persist        (Store interface)
-//   - github.com/Deln0r/ygo/persist/sqlite (pure-Go SQLite impl)
-//   - github.com/Deln0r/ygo/server         (WebSocket sync server)
+//   - github.com/Arnavsharma2/threadwave/persist        (Store interface)
+//   - github.com/Arnavsharma2/threadwave/persist/sqlite (pure-Go SQLite impl)
+//   - github.com/Arnavsharma2/threadwave/server         (WebSocket sync server)
 //
 // Type aliases (vs wrapper structs) keep method sets intact at
-// zero runtime cost — `*ygo.Map` is exactly `*types.Map`, so
+// zero runtime cost — `*threadwave.Map` is exactly `*types.Map`, so
 // SetMap / SetArray / SetText return the right type without any
 // wrapping or copying.
 
 import (
 	"errors"
 
-	"github.com/Deln0r/ygo/internal/awareness"
-	"github.com/Deln0r/ygo/internal/block"
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/internal/encoding"
-	"github.com/Deln0r/ygo/internal/store"
-	"github.com/Deln0r/ygo/internal/types"
-	"github.com/Deln0r/ygo/internal/undo"
+	"github.com/Arnavsharma2/threadwave/internal/awareness"
+	"github.com/Arnavsharma2/threadwave/internal/block"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/encoding"
+	"github.com/Arnavsharma2/threadwave/internal/store"
+	"github.com/Arnavsharma2/threadwave/internal/types"
+	"github.com/Arnavsharma2/threadwave/internal/undo"
 )
 
 // Doc is a single CRDT replica — the local view of a collaborative
@@ -141,8 +141,8 @@ func NewXmlText(d *Doc, name string) *XmlText {
 // a tracked origin (local edits by default), are captured. Bursty edits
 // within the capture-timeout window collapse into a single undo step.
 //
-//	m := ygo.NewMap(d, "settings")
-//	um := ygo.NewUndoManager(d, m)
+//	m := threadwave.NewMap(d, "settings")
+//	um := threadwave.NewUndoManager(d, m)
 //	defer um.Close()
 //	// ... edits to m ...
 //	um.Undo() // reverts the last captured step
@@ -191,7 +191,7 @@ type UndoScope interface {
 // NewUndoManager creates an UndoManager on d watching the given scope
 // of shared types. At least one scope type is required.
 //
-//	um := ygo.NewUndoManager(d, myMap, myArray)
+//	um := threadwave.NewUndoManager(d, myMap, myArray)
 func NewUndoManager(d *Doc, scope ...UndoScope) *UndoManager {
 	return newUndoManager(d, UndoManagerOptions{}, scope)
 }
@@ -309,7 +309,7 @@ func EncodeStateVector(d *Doc) []byte {
 // state it captured with RestoreSnapshot (see the Snapshot doc).
 //
 // For time-travel to work, create the doc with GC disabled
-// (ygo.NewDocWithOptions with DisableGC) so deleted content the
+// (threadwave.NewDocWithOptions with DisableGC) so deleted content the
 // snapshot references is retained.
 type Snapshot = encoding.Snapshot
 
@@ -336,7 +336,7 @@ func EqualSnapshots(a, b Snapshot) bool { return encoding.EqualSnapshots(a, b) }
 // moment snap was taken, returning it as a new Doc. Byte-equivalent to
 // yjs `Y.createDocFromSnapshot`.
 //
-// d must have been created with GC disabled (ygo.NewDocWithOptions with
+// d must have been created with GC disabled (threadwave.NewDocWithOptions with
 // DisableGC: true); otherwise deleted content the snapshot references
 // may have been collected and RestoreSnapshot returns ErrSnapshotGC.
 // The returned Doc also has GC disabled so it can itself be snapshotted.
@@ -362,7 +362,7 @@ func RestoreSnapshot(d *Doc, snap Snapshot) (*Doc, error) {
 // ErrSnapshotGC is returned by RestoreSnapshot when the source Doc has
 // garbage collection enabled, which can discard content a snapshot
 // needs to reconstruct.
-var ErrSnapshotGC = errors.New("ygo: RestoreSnapshot requires the source Doc to have GC disabled (NewDocWithOptions with DisableGC: true)")
+var ErrSnapshotGC = errors.New("threadwave: RestoreSnapshot requires the source Doc to have GC disabled (NewDocWithOptions with DisableGC: true)")
 
 // EncodeDiff returns the wire-encoded V1 update covering the
 // blocks d has that the remote (per remoteSVBytes) does not. A
@@ -456,7 +456,7 @@ func MissingSV(d *Doc) []byte {
 func MergeUpdates(updates [][]byte) ([]byte, error) {
 	// Use the persist package's helper directly — the function is
 	// stateless and re-exporting it would create a dependency cycle
-	// between root ygo and persist. Inline the small wrapper here.
+	// between root threadwave and persist. Inline the small wrapper here.
 	if len(updates) == 0 {
 		return nil, nil
 	}
@@ -482,7 +482,7 @@ func MergeUpdates(updates [][]byte) ([]byte, error) {
 // empty input. Like MergeUpdates it reconstructs then re-encodes, so
 // blocks whose causal dependencies are absent across the merged set are
 // dropped rather than preserved behind Skip blocks (as yjs
-// mergeUpdatesV2 would); ygo-produced full updates are self-contained and
+// mergeUpdatesV2 would); threadwave-produced full updates are self-contained and
 // unaffected.
 func MergeUpdatesV2(updates [][]byte) ([]byte, error) {
 	if len(updates) == 0 {
@@ -519,7 +519,7 @@ func EncodeStateVectorFromUpdate(update []byte) ([]byte, error) {
 // stored update before sending it to a peer that already has part of it.
 //
 // It reconstructs the update's state and diffs against remoteSV, emitting
-// whole blocks like EncodeDiff. A full update that ygo produces
+// whole blocks like EncodeDiff. A full update that threadwave produces
 // (EncodeStateAsUpdate / MergeUpdates) is self-contained and fully
 // covered; a diff (from EncodeDiff) or a hand-crafted update whose block
 // dependencies are absent drops those unresolved blocks.

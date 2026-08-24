@@ -3,12 +3,12 @@ package encoding
 import (
 	"testing"
 
-	"github.com/Deln0r/ygo/internal/block"
+	"github.com/Arnavsharma2/threadwave/internal/block"
 )
 
 // TestDecodeSkipStruct verifies the V1 decoder recognises a Skip struct
 // (ref number 10), which yjs@14 uses to represent holes in the struct
-// store. ygo must decode it gracefully (as a no-op gap range) to stay
+// store. threadwave must decode it gracefully (as a no-op gap range) to stay
 // forward-compatible with v14 update streams; a decoder that only knew
 // refs 0-9 would error on the leading info byte.
 func TestDecodeSkipStruct(t *testing.T) {

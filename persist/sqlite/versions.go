@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Deln0r/ygo/persist"
+	"github.com/Arnavsharma2/threadwave/persist"
 )
 
 // versionsSchemaSQL bootstraps the versioned-history table. Run on
@@ -16,14 +16,14 @@ import (
 // independent: Flush / ClearDocument never touch versions, and
 // DeleteVersion never touches the log.
 const versionsSchemaSQL = `
-CREATE TABLE IF NOT EXISTS ygo_versions (
+CREATE TABLE IF NOT EXISTS threadwave_versions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     doc_name TEXT NOT NULL,
     label TEXT NOT NULL DEFAULT '',
     created_at INTEGER NOT NULL,
     state BLOB NOT NULL
 );
-CREATE INDEX IF NOT EXISTS idx_ygo_versions_doc_name ON ygo_versions(doc_name, id);
+CREATE INDEX IF NOT EXISTS idx_threadwave_versions_doc_name ON threadwave_versions(doc_name, id);
 `
 
 // Compile-time guarantee that *Store satisfies the versioned-history
@@ -38,7 +38,7 @@ func (s *Store) SaveVersion(ctx context.Context, docName, label string, state []
 		return 0, persist.ErrEmptyUpdate
 	}
 	res, err := s.db.ExecContext(ctx,
-		`INSERT INTO ygo_versions (doc_name, label, created_at, state) VALUES (?, ?, ?, ?)`,
+		`INSERT INTO threadwave_versions (doc_name, label, created_at, state) VALUES (?, ?, ?, ?)`,
 		docName, label, time.Now().UTC().Unix(), state)
 	if err != nil {
 		return 0, fmt.Errorf("sqlite.SaveVersion(%q): %w", docName, err)
@@ -54,7 +54,7 @@ func (s *Store) SaveVersion(ctx context.Context, docName, label string, state []
 // oldest first. (nil, nil) when the document has no versions.
 func (s *Store) ListVersions(ctx context.Context, docName string) ([]persist.VersionInfo, error) {
 	rows, err := s.db.QueryContext(ctx,
-		`SELECT id, label, created_at, length(state) FROM ygo_versions
+		`SELECT id, label, created_at, length(state) FROM threadwave_versions
 		 WHERE doc_name = ? ORDER BY id ASC`, docName)
 	if err != nil {
 		return nil, fmt.Errorf("sqlite.ListVersions(%q): %w", docName, err)
@@ -81,7 +81,7 @@ func (s *Store) ListVersions(ctx context.Context, docName string) ([]persist.Ver
 func (s *Store) GetVersionState(ctx context.Context, docName string, versionID int64) ([]byte, error) {
 	var state []byte
 	row := s.db.QueryRowContext(ctx,
-		`SELECT state FROM ygo_versions WHERE doc_name = ? AND id = ?`,
+		`SELECT state FROM threadwave_versions WHERE doc_name = ? AND id = ?`,
 		docName, versionID)
 	err := row.Scan(&state)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -96,7 +96,7 @@ func (s *Store) GetVersionState(ctx context.Context, docName string, versionID i
 // DeleteVersion removes one version. Idempotent on unknown versions.
 func (s *Store) DeleteVersion(ctx context.Context, docName string, versionID int64) error {
 	_, err := s.db.ExecContext(ctx,
-		`DELETE FROM ygo_versions WHERE doc_name = ? AND id = ?`,
+		`DELETE FROM threadwave_versions WHERE doc_name = ? AND id = ?`,
 		docName, versionID)
 	if err != nil {
 		return fmt.Errorf("sqlite.DeleteVersion(%q, %d): %w", docName, versionID, err)
@@ -137,7 +137,7 @@ func (s *Store) RestoreVersion(ctx context.Context, docName string, versionID in
 
 	var state []byte
 	row := conn.QueryRowContext(ctx,
-		`SELECT state FROM ygo_versions WHERE doc_name = ? AND id = ?`,
+		`SELECT state FROM threadwave_versions WHERE doc_name = ? AND id = ?`,
 		docName, versionID)
 	err = row.Scan(&state)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -148,11 +148,11 @@ func (s *Store) RestoreVersion(ctx context.Context, docName string, versionID in
 	}
 
 	if _, err := conn.ExecContext(ctx,
-		`DELETE FROM ygo_updates WHERE doc_name = ?`, docName); err != nil {
+		`DELETE FROM threadwave_updates WHERE doc_name = ?`, docName); err != nil {
 		return fmt.Errorf("sqlite.RestoreVersion(%q, %d) clear: %w", docName, versionID, err)
 	}
 	if _, err := conn.ExecContext(ctx,
-		`INSERT INTO ygo_updates (doc_name, update_blob) VALUES (?, ?)`,
+		`INSERT INTO threadwave_updates (doc_name, update_blob) VALUES (?, ?)`,
 		docName, state); err != nil {
 		return fmt.Errorf("sqlite.RestoreVersion(%q, %d) insert: %w", docName, versionID, err)
 	}

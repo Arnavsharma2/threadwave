@@ -5,9 +5,9 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/Deln0r/ygo/client"
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/persist/sqlite"
+	"github.com/Arnavsharma2/threadwave/client"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/persist/sqlite"
 )
 
 // errAlreadyConnected guards the one-shot Connect contract.
@@ -30,7 +30,7 @@ type Listener interface {
 }
 
 // Client is the gomobile-bindable sync provider: a live WebSocket
-// session syncing one Doc with a yserve / Hocuspocus / y-websocket
+// session syncing one Doc with a threadserve / Hocuspocus / y-websocket
 // server. Construct with NewClient, optionally SetListener, start
 // with Connect, stop with Close. The native app edits the Doc through
 // Text / Map wrappers; sync happens in the background.

@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Deln0r/ygo"
-	"github.com/Deln0r/ygo/client"
-	"github.com/Deln0r/ygo/server"
+	"github.com/Arnavsharma2/threadwave"
+	"github.com/Arnavsharma2/threadwave/client"
+	"github.com/Arnavsharma2/threadwave/server"
 )
 
 // TestExample_ClientSyncsWithServer drives the example client against an
-// in-process ygo server: a writer client appends an entry and a reader
+// in-process threadwave server: a writer client appends an entry and a reader
 // client on the same document converges to it. This proves the example
 // actually connects, edits, and syncs, not merely that it compiles.
 func TestExample_ClientSyncsWithServer(t *testing.T) {
@@ -63,7 +63,7 @@ func TestExample_ClientSyncsWithServer(t *testing.T) {
 // races with the client's apply goroutine mutating the same doc; the read
 // txn serializes against the write, which is the pattern adopters must
 // use to inspect a live client document off its own goroutines.
-func readLen(c *client.Client, a *ygo.Array) int {
+func readLen(c *client.Client, a *threadwave.Array) int {
 	rtxn := c.Doc().ReadTxn()
 	defer rtxn.Close()
 	return int(a.Len())

@@ -1,9 +1,9 @@
 {
-  "name": "ygo-fixture-gen",
+  "name": "threadwave-fixture-gen",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Generates lib0 and yjs fixtures consumed by ygo Go tests.",
+  "description": "Generates lib0 and yjs fixtures consumed by threadwave Go tests.",
   "scripts": {
     "gen": "node gen-lib0.mjs"
   },

@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Deln0r/ygo/internal/encoding"
-	syncpkg "github.com/Deln0r/ygo/internal/sync"
-	"github.com/Deln0r/ygo/server"
+	"github.com/Arnavsharma2/threadwave/internal/encoding"
+	syncpkg "github.com/Arnavsharma2/threadwave/internal/sync"
+	"github.com/Arnavsharma2/threadwave/server"
 )
 
 // failingStore is a persist.Store whose StoreUpdate always errors; the

@@ -1,6 +1,6 @@
 package store
 
-import "github.com/Deln0r/ygo/internal/block"
+import "github.com/Arnavsharma2/threadwave/internal/block"
 
 // CellKind discriminates BlockCell variants. Mirrors yrs BlockCell enum.
 type CellKind uint8

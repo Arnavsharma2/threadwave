@@ -1,6 +1,6 @@
 package store
 
-import "github.com/Deln0r/ygo/internal/block"
+import "github.com/Arnavsharma2/threadwave/internal/block"
 
 // SliceKind discriminates BlockSlice variants. Mirrors yrs slice.rs.
 type SliceKind uint8

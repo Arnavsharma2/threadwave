@@ -1,18 +1,18 @@
-package ygo_test
+package threadwave_test
 
 import (
 	"bytes"
 	"testing"
 
-	"github.com/Deln0r/ygo"
+	"github.com/Arnavsharma2/threadwave"
 )
 
 // TestGC_FreesDeletedContent proves a default (GC-enabled) doc replaces
-// deleted item content with a deleted marker, so the payload no longer
+// deleted item content with a deleted marker, so the pathreadload no longer
 // rides on the wire, matching yjs's commit-time GC.
 func TestGC_FreesDeletedContent(t *testing.T) {
-	d := ygo.NewDoc()
-	txt := ygo.NewText(d, "t")
+	d := threadwave.NewDoc()
+	txt := threadwave.NewText(d, "t")
 
 	txn := d.WriteTxn()
 	_ = txt.Insert(txn, 0, "secret")
@@ -22,7 +22,7 @@ func TestGC_FreesDeletedContent(t *testing.T) {
 	_ = txt.Delete(txn, 0, 6) // delete it all
 	txn.Commit()
 
-	upd := ygo.EncodeStateAsUpdate(d)
+	upd := threadwave.EncodeStateAsUpdate(d)
 	if bytes.Contains(upd, []byte("secret")) {
 		t.Errorf("deleted content 'secret' still present in V1 update; GC did not free it")
 	}
@@ -31,8 +31,8 @@ func TestGC_FreesDeletedContent(t *testing.T) {
 // TestGC_DisabledKeepsContent confirms a DisableGC doc retains deleted
 // content (needed for snapshots / time-travel).
 func TestGC_DisabledKeepsContent(t *testing.T) {
-	d := ygo.NewDocWithOptions(ygo.Options{DisableGC: true})
-	txt := ygo.NewText(d, "t")
+	d := threadwave.NewDocWithOptions(threadwave.Options{DisableGC: true})
+	txt := threadwave.NewText(d, "t")
 
 	txn := d.WriteTxn()
 	_ = txt.Insert(txn, 0, "secret")
@@ -41,7 +41,7 @@ func TestGC_DisabledKeepsContent(t *testing.T) {
 	_ = txt.Delete(txn, 0, 6)
 	txn.Commit()
 
-	upd := ygo.EncodeStateAsUpdate(d)
+	upd := threadwave.EncodeStateAsUpdate(d)
 	if !bytes.Contains(upd, []byte("secret")) {
 		t.Errorf("DisableGC doc dropped deleted content; snapshots would break")
 	}
@@ -51,9 +51,9 @@ func TestGC_DisabledKeepsContent(t *testing.T) {
 // enabled, an UndoManager must still be able to undo a deletion (restore
 // the content), which requires GC to skip the items it keeps.
 func TestGC_UndoOfDeletionSurvivesGC(t *testing.T) {
-	d := ygo.NewDoc() // GC enabled
-	txt := ygo.NewText(d, "t")
-	um := ygo.NewUndoManager(d, txt)
+	d := threadwave.NewDoc() // GC enabled
+	txt := threadwave.NewText(d, "t")
+	um := threadwave.NewUndoManager(d, txt)
 	defer um.Close()
 
 	txn := d.WriteTxn()
@@ -84,8 +84,8 @@ func TestGC_UndoOfDeletionSurvivesGC(t *testing.T) {
 // TestGC_RemoteDeletedContentRoundTrips confirms that a GC'd update from
 // one replica applies cleanly to another and converges.
 func TestGC_RemoteDeletedContentRoundTrips(t *testing.T) {
-	d1 := ygo.NewDoc()
-	a := ygo.NewArray(d1, "a")
+	d1 := threadwave.NewDoc()
+	a := threadwave.NewArray(d1, "a")
 	txn := d1.WriteTxn()
 	a.Insert(txn, 0, "x")
 	a.Insert(txn, 1, "y")
@@ -95,11 +95,11 @@ func TestGC_RemoteDeletedContentRoundTrips(t *testing.T) {
 	a.Delete(txn, 1, 1) // delete "y" -> GC'd
 	txn.Commit()
 
-	d2 := ygo.NewDoc()
-	if err := ygo.ApplyUpdate(d2, ygo.EncodeStateAsUpdate(d1)); err != nil {
+	d2 := threadwave.NewDoc()
+	if err := threadwave.ApplyUpdate(d2, threadwave.EncodeStateAsUpdate(d1)); err != nil {
 		t.Fatalf("apply: %v", err)
 	}
-	got := ygo.NewArray(d2, "a").ToSlice()
+	got := threadwave.NewArray(d2, "a").ToSlice()
 	if len(got) != 2 || got[0] != "x" || got[1] != "z" {
 		t.Errorf("converged array = %v, want [x z]", got)
 	}

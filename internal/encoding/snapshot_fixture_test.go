@@ -20,7 +20,7 @@ type snapshotFixture struct {
 	DS          map[string][][]uint64 `json:"ds"`
 }
 
-// TestSnapshotFixtures_CrossLanguage proves ygo's snapshot codec is
+// TestSnapshotFixtures_CrossLanguage proves threadwave's snapshot codec is
 // byte-compatible with yjs@13.6.31. For each yjs-produced snapshot we:
 //  1. Decode the bytes via DecodeSnapshot.
 //  2. Re-encode via EncodeSnapshot.

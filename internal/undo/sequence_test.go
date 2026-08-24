@@ -3,10 +3,10 @@ package undo_test
 import (
 	"testing"
 
-	"github.com/Deln0r/ygo/internal/block"
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/internal/types"
-	"github.com/Deln0r/ygo/internal/undo"
+	"github.com/Arnavsharma2/threadwave/internal/block"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/types"
+	"github.com/Arnavsharma2/threadwave/internal/undo"
 )
 
 func arrInsert(t *testing.T, d *doc.Doc, a *types.Array, idx uint64, v any) {

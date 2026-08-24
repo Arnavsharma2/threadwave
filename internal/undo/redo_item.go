@@ -1,8 +1,8 @@
 package undo
 
 import (
-	"github.com/Deln0r/ygo/internal/block"
-	"github.com/Deln0r/ygo/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/block"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
 )
 
 // followRedone walks the Redone chain from item to the latest live
@@ -55,7 +55,7 @@ func redoItem(txn *doc.TransactionMut, item *block.Item) *block.Item {
 		return nil
 	}
 
-	// Content kinds with pointer payloads (nested type, move, doc) are
+	// Content kinds with pointer pathreadloads (nested type, move, doc) are
 	// not faithfully restorable in the first cut.
 	if !item.Content.CopyableForUndo() {
 		return nil

@@ -3,10 +3,10 @@ package types
 import (
 	"errors"
 
-	"github.com/Deln0r/ygo/internal/block"
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/internal/lib0"
-	"github.com/Deln0r/ygo/internal/store"
+	"github.com/Arnavsharma2/threadwave/internal/block"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/lib0"
+	"github.com/Arnavsharma2/threadwave/internal/store"
 )
 
 // RelativePosition is a position anchored to the Yjs document model
@@ -55,7 +55,7 @@ type BranchHolder interface {
 
 // ErrDetachedType reports a wrapper whose branch is neither a root
 // type nor attached to a live item, so no stable anchor exists for it.
-var ErrDetachedType = errors.New("ygo: relative position: type is not anchored in a document")
+var ErrDetachedType = errors.New("threadwave: relative position: type is not anchored in a document")
 
 // CreateRelativePositionFromTypeIndex anchors the numeric position
 // index within the shared type t as a RelativePosition. index counts
@@ -126,11 +126,11 @@ func anchorOnly(br *block.Branch, assoc int64) (RelativePosition, error) {
 // ErrEmptyAnchor reports a RelativePosition with no anchor set (none
 // of Item, TName, Type). Such a value cannot come from Create or
 // Decode; it indicates a caller-constructed zero value.
-var ErrEmptyAnchor = errors.New("ygo: relative position: empty anchor")
+var ErrEmptyAnchor = errors.New("threadwave: relative position: empty anchor")
 
 // EncodeRelativePosition serialises rpos to the binary form of
 // Y.encodeRelativePosition: a varuint tag (0 item / 1 tname / 2 type),
-// the payload, then assoc as a signed varint. Returns ErrEmptyAnchor
+// the pathreadload, then assoc as a signed varint. Returns ErrEmptyAnchor
 // for a zero-value rpos (yjs throws unexpectedCase here).
 func EncodeRelativePosition(rpos RelativePosition) ([]byte, error) {
 	buf := make([]byte, 0, 16)
@@ -199,7 +199,7 @@ func DecodeRelativePosition(buf []byte) (RelativePosition, error) {
 		// Deliberate divergence from yjs: readRelativePosition has no
 		// default case and yields an all-null rpos on an unknown tag; we
 		// surface the malformed input as an error instead.
-		return RelativePosition{}, errors.New("ygo: relative position: unknown anchor tag")
+		return RelativePosition{}, errors.New("threadwave: relative position: unknown anchor tag")
 	}
 	if len(buf) > 0 {
 		assoc, _, err := lib0.ReadVarInt(buf)

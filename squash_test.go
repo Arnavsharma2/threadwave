@@ -1,9 +1,9 @@
-package ygo_test
+package threadwave_test
 
 import (
 	"testing"
 
-	"github.com/Deln0r/ygo"
+	"github.com/Arnavsharma2/threadwave"
 )
 
 // TestSquash_MergesSequentialInserts proves commit-time squash collapses
@@ -11,8 +11,8 @@ import (
 // pattern) into a single item, which is what removes the V1 per-item
 // size overhead.
 func TestSquash_MergesSequentialInserts(t *testing.T) {
-	d := ygo.NewDoc()
-	txt := ygo.NewText(d, "t")
+	d := threadwave.NewDoc()
+	txt := threadwave.NewText(d, "t")
 
 	// Ten separate transactions, each appending one character.
 	for i, ch := range "abcdefghij" {
@@ -29,7 +29,7 @@ func TestSquash_MergesSequentialInserts(t *testing.T) {
 	// encoding is far smaller than ten separate item records would be.
 	// A purely per-item encoding of 10 single-char items runs ~90+
 	// bytes; the squashed single item is well under 40.
-	v1 := ygo.EncodeStateAsUpdate(d)
+	v1 := threadwave.EncodeStateAsUpdate(d)
 	if len(v1) > 40 {
 		t.Errorf("V1 update is %d bytes; squash did not merge the inserts", len(v1))
 	}
@@ -39,33 +39,33 @@ func TestSquash_MergesSequentialInserts(t *testing.T) {
 // Apply-side slicing: a peer that already has a prefix of a now-squashed
 // block must integrate only the unknown tail, not drop the whole block.
 func TestSquash_ApplyPartialOverlap(t *testing.T) {
-	d1 := ygo.NewDoc()
-	t1 := ygo.NewText(d1, "t")
+	d1 := threadwave.NewDoc()
+	t1 := threadwave.NewText(d1, "t")
 
 	txn := d1.WriteTxn()
 	_ = t1.Insert(txn, 0, "abc")
 	txn.Commit()
-	prefixUpdate := ygo.EncodeStateAsUpdate(d1) // covers clocks [0,3)
+	prefixUpdate := threadwave.EncodeStateAsUpdate(d1) // covers clocks [0,3)
 
 	txn = d1.WriteTxn()
 	_ = t1.Insert(txn, 3, "def")
 	txn.Commit()
 	// d1 now holds one squashed item covering [0,6) = "abcdef".
-	fullUpdate := ygo.EncodeStateAsUpdate(d1)
+	fullUpdate := threadwave.EncodeStateAsUpdate(d1)
 
 	// d2 first learns the prefix, then receives the full squashed block,
 	// which overlaps the clocks it already has.
-	d2 := ygo.NewDoc()
-	if err := ygo.ApplyUpdate(d2, prefixUpdate); err != nil {
+	d2 := threadwave.NewDoc()
+	if err := threadwave.ApplyUpdate(d2, prefixUpdate); err != nil {
 		t.Fatalf("apply prefix: %v", err)
 	}
-	if got := ygo.NewText(d2, "t").String(); got != "abc" {
+	if got := threadwave.NewText(d2, "t").String(); got != "abc" {
 		t.Fatalf("after prefix d2 = %q, want abc", got)
 	}
-	if err := ygo.ApplyUpdate(d2, fullUpdate); err != nil {
+	if err := threadwave.ApplyUpdate(d2, fullUpdate); err != nil {
 		t.Fatalf("apply full: %v", err)
 	}
-	if got := ygo.NewText(d2, "t").String(); got != "abcdef" {
+	if got := threadwave.NewText(d2, "t").String(); got != "abcdef" {
 		t.Errorf("after partial-overlap apply d2 = %q, want abcdef (right half was dropped)", got)
 	}
 }
@@ -74,9 +74,9 @@ func TestSquash_ApplyPartialOverlap(t *testing.T) {
 // grouping off, two separate-transaction inserts that squash into one
 // item must still undo one at a time (split-on-delete).
 func TestSquash_UndoStillSplits(t *testing.T) {
-	d := ygo.NewDoc()
-	txt := ygo.NewText(d, "t")
-	um := ygo.NewUndoManagerWithOptions(d, ygo.UndoManagerOptions{CaptureTimeout: -1}, txt)
+	d := threadwave.NewDoc()
+	txt := threadwave.NewText(d, "t")
+	um := threadwave.NewUndoManagerWithOptions(d, threadwave.UndoManagerOptions{CaptureTimeout: -1}, txt)
 	defer um.Close()
 
 	txn := d.WriteTxn()

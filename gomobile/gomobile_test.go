@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/Deln0r/ygo/gomobile"
+	"github.com/Arnavsharma2/threadwave/gomobile"
 )
 
 // TestGomobile_TwoDocs_BytesOnlyRoundTrip exercises the canonical
@@ -13,7 +13,7 @@ import (
 // the bytes to B. Tests prove the wire-format primitives survive
 // the wrapper.
 func TestGomobile_TwoDocs_BytesOnlyRoundTrip(t *testing.T) {
-	// Bootstrap A with content via the rich ygo API, encode to bytes,
+	// Bootstrap A with content via the rich threadwave API, encode to bytes,
 	// hand bytes to gomobile-wrapped B which has no other way to get
 	// state. This mimics the iOS / Android consumer pattern: server
 	// pushes bytes over the wire, mobile applies via gomobile API.

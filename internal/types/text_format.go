@@ -3,9 +3,9 @@ package types
 import (
 	"fmt"
 
-	"github.com/Deln0r/ygo/internal/block"
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/internal/utf16"
+	"github.com/Arnavsharma2/threadwave/internal/block"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/utf16"
 )
 
 // Attrs is the format-attribute map carried by KindFormat markers
@@ -268,7 +268,7 @@ const (
 	// item; the value passed to fn is a string.
 	ChunkString ChunkKind = iota
 	// ChunkEmbed is a single embedded value from a KindEmbed item;
-	// the value passed to fn is whatever the embed payload's runtime
+	// the value passed to fn is whatever the embed pathreadload's runtime
 	// type is (typically map[string]any or a primitive Any).
 	ChunkEmbed
 )
@@ -280,7 +280,7 @@ const (
 // empty doc.
 //
 // Per docs/yrs-port-notes/types-text-rich.md §8 — companion to ToDelta.
-// Explicit ChunkKind discriminator means a string-typed embed payload
+// Explicit ChunkKind discriminator means a string-typed embed pathreadload
 // is not misidentified as a text chunk by callers that switch on
 // the runtime type of the value.
 func (t *Text) Range(fn func(kind ChunkKind, value any, attrs Attrs) bool) {

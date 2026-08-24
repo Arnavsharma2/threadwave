@@ -1,8 +1,8 @@
 package encoding
 
 import (
-	"github.com/Deln0r/ygo/internal/block"
-	"github.com/Deln0r/ygo/internal/lib0"
+	"github.com/Arnavsharma2/threadwave/internal/block"
+	"github.com/Arnavsharma2/threadwave/internal/lib0"
 )
 
 // EncoderV2 is the column-oriented update encoder matching yjs
@@ -87,7 +87,7 @@ func (e *EncoderV2) WriteInfo(info uint8) {
 }
 
 // WriteString routes a string to the string column. Used for
-// parent root-type names and ContentString payloads.
+// parent root-type names and ContentString pathreadloads.
 func (e *EncoderV2) WriteString(s string) {
 	e.str.Write(s)
 }
@@ -103,7 +103,7 @@ func (e *EncoderV2) WriteParentInfo(isRootName bool) {
 }
 
 // WriteTypeRef routes a TypeRef tag (Array=0, Map=1, Text=2, ...)
-// to the type-ref RLE column. Used inside ContentType payloads.
+// to the type-ref RLE column. Used inside ContentType pathreadloads.
 func (e *EncoderV2) WriteTypeRef(ref uint8) {
 	e.typeRef.Write(uint64(ref))
 }
@@ -123,7 +123,7 @@ func (e *EncoderV2) WriteVarUint(n uint64) {
 
 // WriteRestBytes appends raw bytes directly to the rest stream.
 // Used by Content encoders (ContentAny, ContentBinary, etc.)
-// that produce arbitrary byte payloads.
+// that produce arbitrary byte pathreadloads.
 func (e *EncoderV2) WriteRestBytes(b []byte) {
 	e.rest = append(e.rest, b...)
 }
@@ -155,7 +155,7 @@ func (e *EncoderV2) WriteKey(key string) {
 // WriteJSON routes a JSON-encoded value to the rest stream as a
 // varstring. Used by ContentFormat / ContentEmbed (matches the
 // V1 encoder.writeJSON path — V2 doesn't column-encode JSON
-// payloads either).
+// pathreadloads either).
 func (e *EncoderV2) WriteJSON(v block.Any) {
 	e.rest = writeJSON(e.rest, v)
 }

@@ -1,4 +1,4 @@
-// Command offline-first demonstrates the ygo client's offline-first
+// Command offline-first demonstrates the threadwave client's offline-first
 // persistence. With a LocalStore the document loads from disk before any
 // network, stays editable with no server reachable, and carries offline
 // edits up to the server on the next successful connect.
@@ -10,7 +10,7 @@
 //	go run ./examples/offline-first -store notes.db -add "second note"
 //	go run ./examples/offline-first -store notes.db            # lists both
 //
-// Point -url at a live ygo/y-websocket server and the accumulated offline
+// Point -url at a live threadwave/y-websocket server and the accumulated offline
 // edits sync up on connect (the handshake carries the local state).
 package main
 
@@ -20,10 +20,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Deln0r/ygo"
-	"github.com/Deln0r/ygo/client"
-	"github.com/Deln0r/ygo/persist"
-	"github.com/Deln0r/ygo/persist/sqlite"
+	"github.com/Arnavsharma2/threadwave"
+	"github.com/Arnavsharma2/threadwave/client"
+	"github.com/Arnavsharma2/threadwave/persist"
+	"github.com/Arnavsharma2/threadwave/persist/sqlite"
 )
 
 func main() {
@@ -75,7 +75,7 @@ func appendAndList(store persist.Store, url, docName, entry string) ([]string, e
 	}
 	defer c.Close() // final persist + flush to the local store
 
-	logArr := ygo.NewArray(c.Doc(), "log")
+	logArr := threadwave.NewArray(c.Doc(), "log")
 	if entry != "" {
 		txn := c.Doc().WriteTxn()
 		logArr.Push(txn, entry)

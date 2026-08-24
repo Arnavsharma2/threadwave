@@ -1,4 +1,4 @@
-// Package persist defines the storage contract for ygo documents and
+// Package persist defines the storage contract for threadwave documents and
 // provides helpers that turn stored update logs back into live Docs.
 //
 // The package itself is storage-engine-agnostic. Reference
@@ -30,8 +30,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/internal/encoding"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/encoding"
 )
 
 // Store is the persistence contract every backing implementation

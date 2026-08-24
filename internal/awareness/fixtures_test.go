@@ -168,8 +168,8 @@ func TestFixtures_EncodeMatchesJSStructurally(t *testing.T) {
 					continue
 				}
 				_ = k
-				payload, _ := json.Marshal(v)
-				aw.SetLocalState(payload)
+				pathreadload, _ := json.Marshal(v)
+				aw.SetLocalState(pathreadload)
 			}
 			ourBytes := aw.Encode(nil)
 
@@ -196,7 +196,7 @@ func TestFixtures_EncodeMatchesJSStructurally(t *testing.T) {
 					t.Errorf("client %d in JS but not ours", e.ClientID)
 					continue
 				}
-				// Decode both JSON payloads and compare structurally.
+				// Decode both JSON pathreadloads and compare structurally.
 				var ourJSON, theirJSON any
 				if err := json.Unmarshal(gotOur.JSON, &ourJSON); err != nil {
 					t.Errorf("client %d ours JSON invalid: %v", e.ClientID, err)

@@ -3,7 +3,7 @@ package block
 import (
 	"fmt"
 
-	"github.com/Deln0r/ygo/internal/utf16"
+	"github.com/Arnavsharma2/threadwave/internal/utf16"
 )
 
 // ContentKind discriminates the variants of Content. The numeric values
@@ -30,7 +30,7 @@ const (
 	KindMove    ContentKind = 11
 )
 
-// Content is the payload of an Item. A single struct (not an interface)
+// Content is the pathreadload of an Item. A single struct (not an interface)
 // so it embeds in Item without an extra allocation and reads cleanly
 // in tests without a type-switch.
 //
@@ -42,7 +42,7 @@ const (
 type Content struct {
 	Kind ContentKind
 
-	// Variant-specific payloads. Set on the indicated kinds; zero
+	// Variant-specific pathreadloads. Set on the indicated kinds; zero
 	// elsewhere.
 
 	Anys      []Any    // KindAny, KindEmbed (1 elem), KindFormat (value, 1 elem)
@@ -58,7 +58,7 @@ type Content struct {
 	Doc       *Doc    // KindDoc — child doc
 	ParentDoc *Doc    // KindDoc — parent doc reference, set at integrate time
 
-	// KindDoc wire payload: a subdocument is encoded as its guid
+	// KindDoc wire pathreadload: a subdocument is encoded as its guid
 	// (a stable string identity) followed by an options object. The
 	// nested document's *content* syncs as a separate update stream
 	// keyed by the guid; the parent only stores this reference.
@@ -131,15 +131,15 @@ func (c Content) Len(_ OffsetKind) uint64 {
 
 // Copy returns a value copy of the content suitable for re-insertion
 // under a fresh Item ID. Used by the UndoManager's redoItem path to
-// resurrect a deleted item: the restoration carries the same payload
+// resurrect a deleted item: the restoration carries the same pathreadload
 // but a new identity. Mirrors yjs ContentX.copy().
 //
-// Slice-backed payloads (Anys, JSONStrs, Bytes) are cloned so the new
+// Slice-backed pathreadloads (Anys, JSONStrs, Bytes) are cloned so the new
 // item does not share mutable backing with the original. Scalar fields
 // copy by value with the struct.
 //
 // Limitation: KindType (nested Branch), KindMove, and KindDoc carry
-// pointer payloads whose deep copy is non-trivial (a nested type has
+// pointer pathreadloads whose deep copy is non-trivial (a nested type has
 // its own item graph). The first UndoManager cut does not restore
 // deletions of those kinds; Copy shallow-copies the pointer and the
 // caller (redoItem) refuses to resurrect such items. Tracked in
@@ -167,7 +167,7 @@ func (c Content) Copy() Content {
 
 // CopyableForUndo reports whether Copy produces a faithful, fully
 // independent restoration for this content kind. False for the
-// pointer-payload kinds (Type, Move, Doc) the first UndoManager cut
+// pointer-pathreadload kinds (Type, Move, Doc) the first UndoManager cut
 // does not handle.
 func (c Content) CopyableForUndo() bool {
 	switch c.Kind {
@@ -246,7 +246,7 @@ func (c *Content) splitDeleted(offset uint64) (Content, error) {
 	return right, nil
 }
 
-// TrySquash extends the receiver to absorb other's payload, returning
+// TrySquash extends the receiver to absorb other's pathreadload, returning
 // true on success. Squashable kinds: Any (slice append), Deleted
 // (length sum), JSON (slice append), String (concat). Non-matching
 // kinds and other variants return false without mutation.

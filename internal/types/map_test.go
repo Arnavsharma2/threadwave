@@ -3,7 +3,7 @@ package types
 import (
 	"testing"
 
-	"github.com/Deln0r/ygo/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
 )
 
 func TestMap_SetGet(t *testing.T) {

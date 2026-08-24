@@ -714,7 +714,7 @@ func (t *Text) Insert(tx *doc.TransactionMut, idx uint64, str string) error {
     }
     length := uint64(t.branch.BlockLen)
     if idx > length {
-        return fmt.Errorf("ygo: text index %d out of range [0, %d]", idx, length)
+        return fmt.Errorf("threadwave: text index %d out of range [0, %d]", idx, length)
     }
     pos, err := findTextPosition(tx, t.branch, idx)
     if err != nil {
@@ -738,7 +738,7 @@ func (t *Text) Insert(tx *doc.TransactionMut, idx uint64, str string) error {
 func (t *Text) Delete(tx *doc.TransactionMut, idx, length uint64) error {
     total := uint64(t.branch.BlockLen)
     if idx+length > total {
-        return fmt.Errorf("ygo: text range [%d, %d) out of bounds [0, %d)", idx, idx+length, total)
+        return fmt.Errorf("threadwave: text range [%d, %d) out of bounds [0, %d)", idx, idx+length, total)
     }
     if length == 0 {
         return nil
@@ -781,7 +781,7 @@ Mention only — defer all of these to a future rich-text commit:
 - **`ContentFormat`** (`block.rs` ItemContent variant + `text.rs:756-762` find_position handling + `text.rs:875-`'s `insert_format`): rich-text attribute markers (bold, italic, etc.) inserted as zero-length items wrapping a range. Already a defined ContentKind in our `internal/block/content.go` but no producer.
 - **`Text::apply_delta`** (`text.rs:233-265`): Quill-style delta (`Inserted` / `Deleted` / `Retain`) batch application. Single biggest API surface for rich-text editing in Yjs.
 - **`Text::insert_with_attributes`** (`text.rs:275-292`): inserts text wrapped in a Format range.
-- **`Text::insert_embed`** / `insert_embed_with_attributes` (`text.rs:301-350`): inserts a non-text payload (binary, nested shared type) inline in the text stream as `ItemContent::Embed` or `ItemContent::Type`.
+- **`Text::insert_embed`** / `insert_embed_with_attributes` (`text.rs:301-350`): inserts a non-text pathreadload (binary, nested shared type) inline in the text stream as `ItemContent::Embed` or `ItemContent::Type`.
 - **`Text::format`** (`text.rs:372-379`): wraps an existing range with formatting attributes.
 - **`Text::diff`** / `diff_range` (`text.rs:288-310`-ish): returns `Vec<Diff>` of formatted chunks — the read-with-formatting counterpart to `get_string`.
 - **`TextEvent::delta`** (`text.rs:1242-1300+`): per-transaction Quill delta for observers. Lazy-computed; non-trivial ~200-line walker. The yjs.dev docs flag the delta detail with a [todo] of their own; our port can defer with citation.

@@ -1,5 +1,5 @@
-// yload is a WebSocket load generator for a ygo/yserve deployment, built on
-// the public ygo client. It opens rooms×conns real sync clients (full
+// threadload is a WebSocket load generator for a threadwave/threadserve deployment, built on
+// the public threadwave client. It opens rooms×conns real sync clients (full
 // handshake), designates the first W conns of each room as writers that push
 // a timestamp string every interval, and measures write→observe propagation
 // latency on every connected client (each observation is a real server
@@ -7,7 +7,7 @@
 //
 // Usage:
 //
-//	yload -url ws://127.0.0.1:8080 -rooms 10 -conns 20 -writers 2 \
+//	threadload -url ws://127.0.0.1:8080 -rooms 10 -conns 20 -writers 2 \
 //	      -interval 500ms -duration 30s -connrate 100
 package main
 
@@ -22,8 +22,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	ygo "github.com/Deln0r/ygo"
-	"github.com/Deln0r/ygo/client"
+	threadwave "github.com/Arnavsharma2/threadwave"
+	"github.com/Arnavsharma2/threadwave/client"
 )
 
 func main() {
@@ -51,7 +51,7 @@ func main() {
 	)
 
 	total := *rooms * *conns
-	fmt.Printf("yload: %d rooms x %d conns = %d clients -> %s (writers %d/room, every %v for %v)\n",
+	fmt.Printf("threadload: %d rooms x %d conns = %d clients -> %s (writers %d/room, every %v for %v)\n",
 		*rooms, *conns, total, *url, *writers, *interval, *duration)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -70,11 +70,11 @@ func main() {
 			go func() {
 				defer wg.Done()
 				room := fmt.Sprintf("%s-%d", *prefix, r)
-				d := ygo.NewDoc()
-				arr := ygo.NewArray(d, "load")
+				d := threadwave.NewDoc()
+				arr := threadwave.NewArray(d, "load")
 				// Observe before connecting; runs under the doc write lock,
 				// so it only parses and records.
-				arr.Observe(func(e *ygo.ArrayEvent) {
+				arr.Observe(func(e *threadwave.ArrayEvent) {
 					now := time.Now()
 					for _, op := range e.Delta {
 						for _, v := range op.Insert {

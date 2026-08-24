@@ -8,7 +8,7 @@
 //   envelope_hex    — outer envelope: varuint(MessageType) [+nested]
 //   message_type    — string label: "sync.step1" | "sync.step2" |
 //                     "sync.update" | "awareness" | "query-awareness"
-//   payload_hex     — inner payload bytes (for sync messages: the
+//   pathreadload_hex     — inner pathreadload bytes (for sync messages: the
 //                     V1 update or state vector AFTER the varbuffer
 //                     length-prefix is stripped; for awareness: the
 //                     awareness update bytes; for query-awareness:
@@ -72,11 +72,11 @@ function buildQueryAwarenessFrame() {
 }
 
 // stripVarbufferPrefix extracts the inner bytes from a varbuffer-
-// wrapped payload. Used to capture the "what's inside the sync
+// wrapped pathreadload. Used to capture the "what's inside the sync
 // envelope" view tests assert against.
 function stripVarbufferPrefix(envelope, skipBytes) {
   // envelope starts with varuint(MessageSync)=1 byte (since tag<128)
-  // + varuint(syncSubType)=1 byte + varbuffer(payload).
+  // + varuint(syncSubType)=1 byte + varbuffer(pathreadload).
   // skipBytes = 1 (sync type) + 1 (sub-type) for sync messages.
   // For awareness: skipBytes = 1 (just the outer tag).
   const decoder = decoding.createDecoder(envelope);
@@ -103,7 +103,7 @@ const fixtures = [];
     js_client_id: 300,
     envelope_hex: hex(envelope),
     message_type: "sync.step1",
-    payload_hex: hex(stripVarbufferPrefix(envelope, 2)),
+    pathreadload_hex: hex(stripVarbufferPrefix(envelope, 2)),
   });
 }
 
@@ -120,7 +120,7 @@ const fixtures = [];
     js_client_id: 301,
     envelope_hex: hex(envelope),
     message_type: "sync.step1",
-    payload_hex: hex(stripVarbufferPrefix(envelope, 2)),
+    pathreadload_hex: hex(stripVarbufferPrefix(envelope, 2)),
   });
 }
 
@@ -136,7 +136,7 @@ const fixtures = [];
     js_client_id: 302,
     envelope_hex: hex(envelope),
     message_type: "sync.step2",
-    payload_hex: hex(stripVarbufferPrefix(envelope, 2)),
+    pathreadload_hex: hex(stripVarbufferPrefix(envelope, 2)),
   });
 }
 
@@ -155,7 +155,7 @@ const fixtures = [];
     js_client_id: 303,
     envelope_hex: hex(envelope),
     message_type: "sync.update",
-    payload_hex: hex(stripVarbufferPrefix(envelope, 2)),
+    pathreadload_hex: hex(stripVarbufferPrefix(envelope, 2)),
   });
 }
 
@@ -174,11 +174,11 @@ const fixtures = [];
     js_client_id: 304,
     envelope_hex: hex(envelope),
     message_type: "awareness",
-    payload_hex: hex(stripVarbufferPrefix(envelope, 1)),
+    pathreadload_hex: hex(stripVarbufferPrefix(envelope, 1)),
   });
 }
 
-// --- QueryAwareness (empty payload) ---
+// --- QueryAwareness (empty pathreadload) ---
 {
   const envelope = buildQueryAwarenessFrame();
   fixtures.push({
@@ -186,7 +186,7 @@ const fixtures = [];
     js_client_id: 0,
     envelope_hex: hex(envelope),
     message_type: "query-awareness",
-    payload_hex: "",
+    pathreadload_hex: "",
   });
 }
 

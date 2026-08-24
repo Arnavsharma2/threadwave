@@ -5,10 +5,10 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Deln0r/ygo/internal/encoding"
-	syncpkg "github.com/Deln0r/ygo/internal/sync"
-	"github.com/Deln0r/ygo/internal/types"
-	"github.com/Deln0r/ygo/server"
+	"github.com/Arnavsharma2/threadwave/internal/encoding"
+	syncpkg "github.com/Arnavsharma2/threadwave/internal/sync"
+	"github.com/Arnavsharma2/threadwave/internal/types"
+	"github.com/Arnavsharma2/threadwave/server"
 )
 
 // TestServer_ConnectDisconnectChurn_NoRace hammers a single document

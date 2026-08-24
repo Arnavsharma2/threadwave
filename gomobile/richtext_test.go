@@ -3,7 +3,7 @@ package gomobile_test
 import (
 	"testing"
 
-	"github.com/Deln0r/ygo/gomobile"
+	"github.com/Arnavsharma2/threadwave/gomobile"
 )
 
 // TestMobile_ApplyDelta_InsertClassification locks the insert-value

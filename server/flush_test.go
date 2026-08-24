@@ -6,7 +6,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Deln0r/ygo/server"
+	"github.com/Arnavsharma2/threadwave/server"
 )
 
 // recordingStore is a persist.Store that records the docName of each Flush

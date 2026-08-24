@@ -4,7 +4,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/Deln0r/ygo/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
 )
 
 // TestAfterTransaction_FiresOnce verifies a registered handler fires

@@ -1,6 +1,6 @@
 # Examples
 
-Runnable examples for embedding and using ygo. Each is a `go run`-able
+Runnable examples for embedding and using threadwave. Each is a `go run`-able
 program with its own README.
 
 | Example | What it shows |
@@ -10,5 +10,5 @@ program with its own README.
 | [offline-first](offline-first) | Client-side offline persistence with a `LocalStore`: usable with no network, edits survive restarts and sync up on reconnect |
 
 The core CRDT API also has runnable, output-verified examples that render
-on [pkg.go.dev](https://pkg.go.dev/github.com/Deln0r/ygo#pkg-examples)
+on [pkg.go.dev](https://pkg.go.dev/github.com/Arnavsharma2/threadwave#pkg-examples)
 (Map, Array, Text, two-document sync, UndoManager).

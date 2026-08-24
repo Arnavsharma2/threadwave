@@ -91,14 +91,14 @@ func TestFixtures(t *testing.T) {
 				if c.ValueBuf == nil {
 					t.Fatal("varbuffer case missing valueBufHex")
 				}
-				payload := mustHex(t, *c.ValueBuf)
-				got := WriteVarUint8Array(nil, payload)
+				pathreadload := mustHex(t, *c.ValueBuf)
+				got := WriteVarUint8Array(nil, pathreadload)
 				if !bytes.Equal(got, want) {
 					t.Fatalf("encode mismatch: got % x want % x", got, want)
 				}
 				dec, n, err := ReadVarUint8Array(want)
-				if err != nil || n != len(want) || !bytes.Equal(dec, payload) {
-					t.Fatalf("decode: got % x (%d bytes, %v), want % x", dec, n, err, payload)
+				if err != nil || n != len(want) || !bytes.Equal(dec, pathreadload) {
+					t.Fatalf("decode: got % x (%d bytes, %v), want % x", dec, n, err, pathreadload)
 				}
 			case "float32":
 				if c.ValueF32 == nil {

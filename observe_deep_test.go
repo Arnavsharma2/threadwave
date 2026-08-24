@@ -1,20 +1,20 @@
-package ygo_test
+package threadwave_test
 
 import (
 	"reflect"
 	"testing"
 
-	"github.com/Deln0r/ygo"
+	"github.com/Arnavsharma2/threadwave"
 )
 
 // eventPath returns the Path of whichever event type e is.
 func eventPath(e any) []any {
 	switch ev := e.(type) {
-	case *ygo.MapEvent:
+	case *threadwave.MapEvent:
 		return ev.Path
-	case *ygo.ArrayEvent:
+	case *threadwave.ArrayEvent:
 		return ev.Path
-	case *ygo.TextEvent:
+	case *threadwave.TextEvent:
 		return ev.Path
 	}
 	return nil
@@ -24,8 +24,8 @@ func eventPath(e any) []any {
 // for changes to nested types, with the path from the root to the
 // changed type, matching yjs@13.6.31 observeDeep.
 func TestObserveDeep_Path(t *testing.T) {
-	d := ygo.NewDoc()
-	root := ygo.NewMap(d, "root")
+	d := threadwave.NewDoc()
+	root := threadwave.NewMap(d, "root")
 	txn := d.WriteTxn()
 	child := root.SetMap(txn, "child")
 	list := root.SetArray(txn, "list")
@@ -55,8 +55,8 @@ func TestObserveDeep_Path(t *testing.T) {
 // TestObserveDeep_NestedIndex checks an array-index path segment: a map
 // nested inside an array element resolves to a numeric path segment.
 func TestObserveDeep_NestedIndex(t *testing.T) {
-	d := ygo.NewDoc()
-	root := ygo.NewArray(d, "root")
+	d := threadwave.NewDoc()
+	root := threadwave.NewArray(d, "root")
 	txn := d.WriteTxn()
 	root.Push(txn, "a", "b") // indices 0,1
 	inner := root.InsertMap(txn, 2)
@@ -82,8 +82,8 @@ func TestObserveDeep_NestedIndex(t *testing.T) {
 // TestObserveDeep_FiresOnSelf confirms a deep observer also fires for a
 // change to the observed type itself, with an empty path.
 func TestObserveDeep_FiresOnSelf(t *testing.T) {
-	d := ygo.NewDoc()
-	m := ygo.NewMap(d, "m")
+	d := threadwave.NewDoc()
+	m := threadwave.NewMap(d, "m")
 	fired := 0
 	var gotPath []any
 	m.ObserveDeep(func(evs []any) {

@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Deln0r/ygo/internal/encoding"
-	syncpkg "github.com/Deln0r/ygo/internal/sync"
-	"github.com/Deln0r/ygo/internal/types"
-	"github.com/Deln0r/ygo/server"
+	"github.com/Arnavsharma2/threadwave/internal/encoding"
+	syncpkg "github.com/Arnavsharma2/threadwave/internal/sync"
+	"github.com/Arnavsharma2/threadwave/internal/types"
+	"github.com/Arnavsharma2/threadwave/server"
 )
 
 // largeUpdate stores one oversized value on c and returns a full-state
@@ -47,7 +47,7 @@ func TestServer_ReadLimit_AllowsLargeDoc(t *testing.T) {
 
 	b := dialClient(t, wsURL, "big", 200)
 	defer b.close()
-	b.conn.SetReadLimit(1 << 20) // the real ygo client lifts its own limit too
+	b.conn.SetReadLimit(1 << 20) // the real threadwave client lifts its own limit too
 	b.read(t)                    // initial SyncStep1
 
 	update, value := largeUpdate(t, a, "blob")
@@ -57,7 +57,7 @@ func TestServer_ReadLimit_AllowsLargeDoc(t *testing.T) {
 		if f.Type != syncpkg.MessageSync || f.SyncSub != syncpkg.SyncUpdate {
 			return false
 		}
-		if err := encoding.ApplyUpdate(b.doc, f.Payload); err != nil {
+		if err := encoding.ApplyUpdate(b.doc, f.Pathreadload); err != nil {
 			t.Fatalf("apply update: %v", err)
 		}
 		got, _ := types.NewMap(b.doc.Branch("doc")).Get("blob").(string)

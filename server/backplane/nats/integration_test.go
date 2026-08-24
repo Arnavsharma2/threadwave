@@ -7,12 +7,12 @@ import (
 	"testing"
 	"time"
 
-	ygo "github.com/Deln0r/ygo"
-	"github.com/Deln0r/ygo/client"
-	"github.com/Deln0r/ygo/server"
+	threadwave "github.com/Arnavsharma2/threadwave"
+	"github.com/Arnavsharma2/threadwave/client"
+	"github.com/Arnavsharma2/threadwave/server"
 )
 
-// TestBackplane_ServerConvergenceOverNATS is the end-to-end proof: two ygo
+// TestBackplane_ServerConvergenceOverNATS is the end-to-end proof: two threadwave
 // servers, each with its own NATS backplane on a shared NATS server, and a
 // client on each. An edit on one client reaches the other, so the update
 // travels client -> serverA -> NATS -> serverB -> client.
@@ -38,12 +38,12 @@ func TestBackplane_ServerConvergenceOverNATS(t *testing.T) {
 	wsA := "ws" + strings.TrimPrefix(httpA.URL, "http")
 	wsB := "ws" + strings.TrimPrefix(httpB.URL, "http")
 
-	docA := ygo.NewDoc()
+	docA := threadwave.NewDoc()
 	c1, err := client.New(client.Options{URL: wsA, DocName: "shared", Doc: docA})
 	if err != nil {
 		t.Fatal(err)
 	}
-	docB := ygo.NewDoc()
+	docB := threadwave.NewDoc()
 	c2, err := client.New(client.Options{URL: wsB, DocName: "shared", Doc: docB})
 	if err != nil {
 		t.Fatal(err)
@@ -64,14 +64,14 @@ func TestBackplane_ServerConvergenceOverNATS(t *testing.T) {
 
 	// Edit on client 1; the client sends it to server A, which publishes over
 	// NATS to server B, which broadcasts it to client 2.
-	m := ygo.NewMap(docA, "m")
+	m := threadwave.NewMap(docA, "m")
 	txn := docA.WriteTxn()
 	m.Set(txn, "k", "v")
 	txn.Commit()
 
 	// Poll client 2's document until the edit lands (reads under a ReadTxn,
 	// which is required off a live client's apply goroutine).
-	mB := ygo.NewMap(docB, "m")
+	mB := threadwave.NewMap(docB, "m")
 	deadline := time.Now().Add(10 * time.Second)
 	for time.Now().Before(deadline) {
 		rtxn := docB.ReadTxn()
@@ -86,7 +86,7 @@ func TestBackplane_ServerConvergenceOverNATS(t *testing.T) {
 }
 
 // TestBackplane_ServerConvergenceOverJetStream is the end-to-end proof for the
-// JetStream adapter: two ygo servers, each with its own JetStream backplane on
+// JetStream adapter: two threadwave servers, each with its own JetStream backplane on
 // a shared JetStream-enabled NATS server, converge on an edit. The update
 // travels client -> serverA -> JetStream stream -> serverB -> client.
 func TestBackplane_ServerConvergenceOverJetStream(t *testing.T) {
@@ -113,12 +113,12 @@ func TestBackplane_ServerConvergenceOverJetStream(t *testing.T) {
 	wsA := "ws" + strings.TrimPrefix(httpA.URL, "http")
 	wsB := "ws" + strings.TrimPrefix(httpB.URL, "http")
 
-	docA := ygo.NewDoc()
+	docA := threadwave.NewDoc()
 	c1, err := client.New(client.Options{URL: wsA, DocName: "shared", Doc: docA})
 	if err != nil {
 		t.Fatal(err)
 	}
-	docB := ygo.NewDoc()
+	docB := threadwave.NewDoc()
 	c2, err := client.New(client.Options{URL: wsB, DocName: "shared", Doc: docB})
 	if err != nil {
 		t.Fatal(err)
@@ -137,12 +137,12 @@ func TestBackplane_ServerConvergenceOverJetStream(t *testing.T) {
 	waitSynced(t, c1)
 	waitSynced(t, c2)
 
-	m := ygo.NewMap(docA, "m")
+	m := threadwave.NewMap(docA, "m")
 	txn := docA.WriteTxn()
 	m.Set(txn, "k", "v")
 	txn.Commit()
 
-	mB := ygo.NewMap(docB, "m")
+	mB := threadwave.NewMap(docB, "m")
 	deadline := time.Now().Add(10 * time.Second)
 	for time.Now().Before(deadline) {
 		rtxn := docB.ReadTxn()

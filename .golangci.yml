@@ -38,7 +38,7 @@ formatters:
   settings:
     goimports:
       local-prefixes:
-        - github.com/Deln0r/ygo
+        - github.com/Arnavsharma2/threadwave
   exclusions:
     generated: lax
     paths:

@@ -45,9 +45,9 @@ func dialReconnect(t *testing.T, url string) *nats.Conn {
 	return nc
 }
 
-// awaitPayload polls a collector until it has recorded a delivery equal to want,
+// awaitPathreadload polls a collector until it has recorded a delivery equal to want,
 // or the timeout elapses.
-func awaitPayload(t *testing.T, c *collector, want []byte, timeout time.Duration) bool {
+func awaitPathreadload(t *testing.T, c *collector, want []byte, timeout time.Duration) bool {
 	t.Helper()
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
@@ -208,7 +208,7 @@ func TestJetStream_ResumesAfterServerRestart(t *testing.T) {
 	// b's ordered consumer must have recovered and delivered the post-restart
 	// message; a plain ephemeral consumer would have died silently on the
 	// reconnect and never delivered it.
-	if !awaitPayload(t, cb, []byte{2}, 15*time.Second) {
+	if !awaitPathreadload(t, cb, []byte{2}, 15*time.Second) {
 		t.Fatal("subscriber never received the post-restart message; the consumer did not resume")
 	}
 }
@@ -266,7 +266,7 @@ func TestJetStream_ResumesAfterRestartBeforeFirstDelivery(t *testing.T) {
 	if !published {
 		t.Fatal("publish never succeeded after server restart")
 	}
-	if !awaitPayload(t, cb, []byte{7}, 15*time.Second) {
+	if !awaitPathreadload(t, cb, []byte{7}, 15*time.Second) {
 		t.Fatal("subscriber never received the message after a restart before first delivery")
 	}
 }

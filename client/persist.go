@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Deln0r/ygo/internal/encoding"
+	"github.com/Arnavsharma2/threadwave/internal/encoding"
 )
 
 // flushEvery compacts the local update log after this many persisted

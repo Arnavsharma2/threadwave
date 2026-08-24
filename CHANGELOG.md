@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to ygo are documented here. The format follows
+All notable changes to threadwave are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project has
 followed [Semantic Versioning](https://semver.org/spec/v2.0.0.html) since
 v1.0.0: new functionality lands as a minor release, breaking changes are
@@ -19,7 +19,7 @@ Supported toolchain, current dependencies.
 
 **Upgrade impact** — the minimum Go version is now **1.25**, raised from 1.22.
 Go itself supports only its two most recent releases (1.25 and 1.26), so 1.22
-through 1.24 no longer receive upstream fixes; building ygo now requires a
+through 1.24 no longer receive upstream fixes; building threadwave now requires a
 supported toolchain. If you are pinned to an older Go, stay on v1.15.0. The
 raise is what allows the dependencies below to move: to keep the 1.22 floor,
 `modernc.org/sqlite` had been held at v1.29.10 (released May 2024) in the layer
@@ -45,7 +45,7 @@ ignore rules.
 Cross-cluster presence.
 
 **Upgrade impact** — affects only deployments that configure a `Backplane`
-(multi-instance clustering). Backplane payloads are now framed with a one-byte
+(multi-instance clustering). Backplane pathreadloads are now framed with a one-byte
 kind prefix (0 = document update, 1 = presence update) instead of the bare V1
 update bytes v1.14.0 published, and the framing is not version-negotiated. A
 mixed-version cluster sharing one broker misparses in both directions, so
@@ -70,11 +70,11 @@ servers (`Backplane` nil) and all non-server API are unaffected.
   new local client its slot elsewhere. Zero (the default) reserves about 1/8 of
   a bounded `MaxAwarenessClients` for local clients; a negative value disables
   the partition.
-- `cmd/yload`, a runnable multi-client load-test harness, with measured results
+- `cmd/threadload`, a runnable multi-client load-test harness, with measured results
   published in BENCHMARKS.md.
 
 ### Changed
-- Backplane payloads carry a one-byte kind prefix distinguishing document
+- Backplane pathreadloads carry a one-byte kind prefix distinguishing document
   updates from presence (see Upgrade impact).
 
 ### Fixed
@@ -94,7 +94,7 @@ Horizontal scaling with a cluster backplane.
   time. Ships an in-process `Memory` hub; implement the small `Backplane`
   interface for a cross-machine broker. Multi-instance deployments must share a
   single Store, and presence is still per-instance in this release.
-- `Options.MaxConns` (and `yserve -max-conns`) caps total live connections
+- `Options.MaxConns` (and `threadserve -max-conns`) caps total live connections
   server-wide, complementing the per-document `MaxConnsPerDoc`. It defaults to
   unlimited, so existing servers are unaffected until you set it; over-cap
   connections are refused at the upgrade with 1013 TryAgainLater.
@@ -188,7 +188,7 @@ Server resource caps and connection lifecycle hooks.
 document were previously unlimited, so a deployment with a room above that
 ceiling starts refusing additional sockets (close code 1008) after upgrading.
 Established connections are unaffected. Set `Options.MaxConnsPerDoc` to a
-negative value (or run `yserve -max-conns-per-doc -1`) to restore unlimited.
+negative value (or run `threadserve -max-conns-per-doc -1`) to restore unlimited.
 The new `MaxDocs` cap needs no action: it defaults to unlimited.
 
 ### Added
@@ -204,7 +204,7 @@ The new `MaxDocs` cap needs no action: it defaults to unlimited.
   with a correlatable per-connection id. `OnConnect` can reject a connection,
   and both a rejection and a panic tear down cleanly without leaking the room
   slot.
-- `yserve` gains `-max-conns-per-doc` and `-max-docs` flags.
+- `threadserve` gains `-max-conns-per-doc` and `-max-docs` flags.
 
 ### Fixed
 - A connection can no longer be admitted onto a document that is being evicted:
@@ -324,7 +324,7 @@ Configurable WebSocket read limit for large documents.
   documents whose sync frame would otherwise exceed the limit and trigger a
   reconnect loop, or set `-1` for unlimited. Zero keeps the previous 32 KiB
   default.
-- `yserve` gains `-read-limit`, plus `-awareness-timeout` and
+- `threadserve` gains `-read-limit`, plus `-awareness-timeout` and
   `-max-awareness-clients` for tuning the presence layer from the binary.
 
 ## [1.4.0] - 2026-06-15
@@ -340,7 +340,7 @@ but an existing deployment behaves differently after upgrading.
    servers evicted nothing. Any non-local awareness client whose last update is
    older than the timeout is marked offline and the removal is broadcast to the
    room. The sweep cannot be disabled, only lengthened. Clients that heartbeat
-   presence (y-websocket) are unaffected, but ygo's own `client` package sends
+   presence (y-websocket) are unaffected, but threadwave's own `client` package sends
    awareness only when the local state changes, so an idle Go peer (bot, agent,
    CLI) drops out of presence after 30s and does not come back until it changes
    state or reconnects. If you have such peers, re-send awareness periodically
@@ -354,7 +354,7 @@ but an existing deployment behaves differently after upgrading.
 
 Also note that the new awareness decode caps are hard constants, not options:
 an update declaring more than 65536 entries, or carrying a single client state
-larger than 64 KiB, is now a decode error. If you put large payloads into
+larger than 64 KiB, is now a decode error. If you put large pathreadloads into
 awareness state, move them out of the presence channel before upgrading.
 
 ### Added
@@ -376,14 +376,14 @@ awareness state, move them out of the presence channel before upgrading.
 ### Security
 - The awareness decoder rejects length-prefix amplification before allocating:
   at most 65536 entries per update (`MaxUpdateEntries`) and 64 KiB of JSON
-  state per client (`MaxStatePayloadBytes`).
+  state per client (`MaxStatePathreadloadBytes`).
 - Every wire-supplied element count in the V1/V2 update, snapshot, id-set,
   state-vector, and `Any`-content decoders is bounded against the actual input
   length. A 9-byte update could previously force a multi-terabyte allocation;
   the bound never rejects a valid encoding (cross-language fixtures still
   pass).
 - The server re-broadcasts only the awareness entries it actually accepted,
-  re-encoded from its own state instead of relaying the raw inbound payload, so
+  re-encoded from its own state instead of relaying the raw inbound pathreadload, so
   entries dropped by the per-room cap never reach cap-less browser peers.
 
 ## [1.3.0] - 2026-06-15
@@ -438,7 +438,7 @@ Change observers, a Go sync client, and an editable mobile SDK.
 
 ## [1.1.0] - 2026-06-11
 
-Collaborative cursors, versioned history, and the yserve binary.
+Collaborative cursors, versioned history, and the threadserve binary.
 
 ### Added
 - Relative positions for collaborative cursors:
@@ -451,19 +451,19 @@ Collaborative cursors, versioned history, and the yserve binary.
   independently of the update log, so compaction never touches history and
   pruning never touches live state. Save / list / load / atomic restore /
   prune, with the sqlite backend as the reference implementation (its
-  `ygo_versions` table is created on `Open`, so existing databases pick it up
+  `threadwave_versions` table is created on `Open`, so existing databases pick it up
   with no migration step).
 - `Options.VersionInterval` and `KeepVersions` turn on periodic auto-versioning
   for documents that received updates since the last sweep.
-- yserve (`cmd/yserve`): the bundled server as one static binary, speaking the
+- threadserve (`cmd/threadserve`): the bundled server as one static binary, speaking the
   Hocuspocus wire protocol so existing `@hocuspocus/provider` and
   `y-websocket` clients connect unchanged, with SQLite persistence,
   auto-versioning flags, a `FROM scratch` Dockerfile, and it still embeds as a
   plain `http.Handler`.
 
 ### Changed
-- `cmd/ygo-server` is a deprecated alias of `cmd/yserve`. It still builds and
-  runs identically; new server features land in yserve only, and the alias is
+- `cmd/threadwave-server` is a deprecated alias of `cmd/threadserve`. It still builds and
+  runs identically; new server features land in threadserve only, and the alias is
   slated for removal in a future major release.
 
 ## [1.0.1] - 2026-06-09
@@ -489,12 +489,12 @@ deleted content was retained in every document regardless of the `DisableGC`
 option. From v1.0.0 every commit — including the commit that applies a remote
 or persisted update's delete set — irreversibly replaces the content of items
 tombstoned in that transaction with a same-length `ContentDeleted` marker on
-any document created with `ygo.NewDoc()`. Two consequences: updates encoded
-from a default document no longer carry deleted payloads, and loading a
+any document created with `threadwave.NewDoc()`. Two consequences: updates encoded
+from a default document no longer carry deleted pathreadloads, and loading a
 previously persisted document into a default document discards the deleted
 content it still held as soon as its delete set is applied. If you need history
 (snapshots, time-travel, or any read of deleted content), create the document
-with `ygo.NewDocWithOptions(ygo.Options{DisableGC: true})`. Items an
+with `threadwave.NewDocWithOptions(threadwave.Options{DisableGC: true})`. Items an
 `UndoManager` has in scope are marked keep during the same commit, so undo and
 redo of deletions keep working on a default document. No exported identifier or
 signature changed, and convergence and JS interop are unaffected
@@ -521,7 +521,7 @@ signature changed, and convergence and JS interop are unaffected
 
 Undo, snapshots, subdocuments, and compact V1 encoding.
 
-**Upgrade impact** — move every ygo peer in a deployment to v0.10.0 at the same
+**Upgrade impact** — move every threadwave peer in a deployment to v0.10.0 at the same
 time; do not mix it with v0.9.0 or older on the same sync wire. With
 commit-time squash a document emits merged blocks that can span clocks the
 receiver only partly has, and the diff encoder sends such a straddling block
@@ -533,7 +533,7 @@ peers are unaffected, since yjs slices on integrate. No exported signature
 changed and persisted documents remain readable.
 
 ### Added
-- UndoManager: `ygo.NewUndoManager` / `NewUndoManagerWithOptions` give scoped
+- UndoManager: `threadwave.NewUndoManager` / `NewUndoManagerWithOptions` give scoped
   undo/redo over Map, Array and Text, with capture-timeout grouping of bursty
   edits and tracked-origin filtering (local edits only by default).
 - Snapshots and time-travel: `CreateSnapshot` / `EncodeSnapshot` /
@@ -567,7 +567,7 @@ First public alpha of the pure-Go Yjs port.
   and Quill deltas), XmlFragment / XmlElement / XmlText, nested to arbitrary
   depth, plus a y-protocols-compatible Awareness CRDT.
 - A Hocuspocus-compatible WebSocket sync server, with a stand-alone binary in
-  `cmd/ygo-server` and pluggable persistence behind a `modernc.org/sqlite`
+  `cmd/threadwave-server` and pluggable persistence behind a `modernc.org/sqlite`
   reference store.
 - Pure Go with no CGO: a bytes-only subset binds through gomobile, verified end
   to end as an iOS xcframework (device and simulator slices) and an Android AAR
@@ -578,8 +578,8 @@ First public alpha of the pure-Go Yjs port.
 # Nested module: server/backplane/nats
 
 The optional NATS backplane adapter is a separate Go module
-(`github.com/Deln0r/ygo/server/backplane/nats`) so the ygo core stays
-dependency-free. It is versioned independently of ygo itself.
+(`github.com/Arnavsharma2/threadwave/server/backplane/nats`) so the threadwave core stays
+dependency-free. It is versioned independently of threadwave itself.
 
 ## [nats/0.2.0] - 2026-07-27
 
@@ -593,7 +593,7 @@ JetStream adapter for reliable cross-instance delivery.
   silently stop delivery the way core NATS can. No-loss is bounded by the
   stream's retention (`WithJSMaxAge`, default 10m); beyond it the shared Store
   backfills on the next document load. Duplicates from a consumer reset are
-  safe, because ygo applies are idempotent and commutative. Options:
+  safe, because threadwave applies are idempotent and commutative. Options:
   `WithJSPrefix`, `WithStreamName`, `WithJSMaxAge`.
 - The stream is created once and never updated, so one instance cannot silently
   rewrite a shared stream's configuration; its default name is namespaced by
@@ -602,14 +602,14 @@ JetStream adapter for reliable cross-instance delivery.
 
 ### Changed
 - Adapter documentation corrected: presence/awareness *is* carried over the
-  backplane, since payloads are opaque to the adapter.
+  backplane, since pathreadloads are opaque to the adapter.
 
 ## [nats/0.1.0] - 2026-07-16
 
 Core NATS backplane adapter.
 
 ### Added
-- `New(nc, opts...)` fans document updates between ygo server instances over
+- `New(nc, opts...)` fans document updates between threadwave server instances over
   NATS, satisfying the `backplane.Backplane` interface. The caller owns the
   connection; `docName` is base64url-encoded into the subject so names
   containing `.`, spaces or the `*`/`>` wildcards cannot break routing, and
@@ -620,26 +620,26 @@ Core NATS backplane adapter.
 - Delivery is core-NATS at-most-once. Where a dropped delta is unacceptable,
   use `NewJetStream` (v0.2.0) instead.
 
-[1.16.0]: https://github.com/Deln0r/ygo/releases/tag/v1.16.0
-[1.15.0]: https://github.com/Deln0r/ygo/releases/tag/v1.15.0
-[1.14.0]: https://github.com/Deln0r/ygo/releases/tag/v1.14.0
-[1.13.0]: https://github.com/Deln0r/ygo/releases/tag/v1.13.0
-[1.12.0]: https://github.com/Deln0r/ygo/releases/tag/v1.12.0
-[1.11.0]: https://github.com/Deln0r/ygo/releases/tag/v1.11.0
-[1.10.0]: https://github.com/Deln0r/ygo/releases/tag/v1.10.0
-[1.9.0]: https://github.com/Deln0r/ygo/releases/tag/v1.9.0
-[1.8.0]: https://github.com/Deln0r/ygo/releases/tag/v1.8.0
-[1.7.0]: https://github.com/Deln0r/ygo/releases/tag/v1.7.0
-[1.6.1]: https://github.com/Deln0r/ygo/releases/tag/v1.6.1
-[1.6.0]: https://github.com/Deln0r/ygo/releases/tag/v1.6.0
-[1.5.0]: https://github.com/Deln0r/ygo/releases/tag/v1.5.0
-[1.4.0]: https://github.com/Deln0r/ygo/releases/tag/v1.4.0
-[1.3.0]: https://github.com/Deln0r/ygo/releases/tag/v1.3.0
-[1.2.0]: https://github.com/Deln0r/ygo/releases/tag/v1.2.0
-[1.1.0]: https://github.com/Deln0r/ygo/releases/tag/v1.1.0
-[1.0.1]: https://github.com/Deln0r/ygo/releases/tag/v1.0.1
-[1.0.0]: https://github.com/Deln0r/ygo/releases/tag/v1.0.0
-[0.10.0]: https://github.com/Deln0r/ygo/releases/tag/v0.10.0
-[0.9.0]: https://github.com/Deln0r/ygo/releases/tag/v0.9.0
-[nats/0.2.0]: https://github.com/Deln0r/ygo/releases/tag/server/backplane/nats/v0.2.0
-[nats/0.1.0]: https://github.com/Deln0r/ygo/releases/tag/server/backplane/nats/v0.1.0
+[1.16.0]: https://github.com/Arnavsharma2/threadwave/releases/tag/v1.16.0
+[1.15.0]: https://github.com/Arnavsharma2/threadwave/releases/tag/v1.15.0
+[1.14.0]: https://github.com/Arnavsharma2/threadwave/releases/tag/v1.14.0
+[1.13.0]: https://github.com/Arnavsharma2/threadwave/releases/tag/v1.13.0
+[1.12.0]: https://github.com/Arnavsharma2/threadwave/releases/tag/v1.12.0
+[1.11.0]: https://github.com/Arnavsharma2/threadwave/releases/tag/v1.11.0
+[1.10.0]: https://github.com/Arnavsharma2/threadwave/releases/tag/v1.10.0
+[1.9.0]: https://github.com/Arnavsharma2/threadwave/releases/tag/v1.9.0
+[1.8.0]: https://github.com/Arnavsharma2/threadwave/releases/tag/v1.8.0
+[1.7.0]: https://github.com/Arnavsharma2/threadwave/releases/tag/v1.7.0
+[1.6.1]: https://github.com/Arnavsharma2/threadwave/releases/tag/v1.6.1
+[1.6.0]: https://github.com/Arnavsharma2/threadwave/releases/tag/v1.6.0
+[1.5.0]: https://github.com/Arnavsharma2/threadwave/releases/tag/v1.5.0
+[1.4.0]: https://github.com/Arnavsharma2/threadwave/releases/tag/v1.4.0
+[1.3.0]: https://github.com/Arnavsharma2/threadwave/releases/tag/v1.3.0
+[1.2.0]: https://github.com/Arnavsharma2/threadwave/releases/tag/v1.2.0
+[1.1.0]: https://github.com/Arnavsharma2/threadwave/releases/tag/v1.1.0
+[1.0.1]: https://github.com/Arnavsharma2/threadwave/releases/tag/v1.0.1
+[1.0.0]: https://github.com/Arnavsharma2/threadwave/releases/tag/v1.0.0
+[0.10.0]: https://github.com/Arnavsharma2/threadwave/releases/tag/v0.10.0
+[0.9.0]: https://github.com/Arnavsharma2/threadwave/releases/tag/v0.9.0
+[nats/0.2.0]: https://github.com/Arnavsharma2/threadwave/releases/tag/server/backplane/nats/v0.2.0
+[nats/0.1.0]: https://github.com/Arnavsharma2/threadwave/releases/tag/server/backplane/nats/v0.1.0

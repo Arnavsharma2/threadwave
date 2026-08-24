@@ -1,5 +1,5 @@
-// Command collab-client is a runnable example of the ygo Go-native sync
-// client. It connects to a ygo (or any y-websocket) server, observes a
+// Command collab-client is a runnable example of the threadwave Go-native sync
+// client. It connects to a threadwave (or any y-websocket) server, observes a
 // shared array, appends one entry, and logs every change — local and
 // remote — as the document converges.
 //
@@ -10,7 +10,7 @@
 //	go run ./examples/collab-client -url ws://localhost:8080/collab -doc room1 -name bob
 //
 // The two clients see each other's entries. It also speaks to the public
-// demo: -url wss://ygo.deln0r.com/ws -doc <your-room>.
+// demo: -url wss://threadwave.deln0r.com/ws -doc <your-room>.
 package main
 
 import (
@@ -22,8 +22,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Deln0r/ygo"
-	"github.com/Deln0r/ygo/client"
+	"github.com/Arnavsharma2/threadwave"
+	"github.com/Arnavsharma2/threadwave/client"
 )
 
 func main() {
@@ -68,7 +68,7 @@ func main() {
 // newClient builds the sync client and its observed "items" array. Split
 // out from main so the smoke test can drive it. The observer fires for
 // both local edits and applied remote updates.
-func newClient(url, docName string) (*client.Client, *ygo.Array, error) {
+func newClient(url, docName string) (*client.Client, *threadwave.Array, error) {
 	c, err := client.New(client.Options{
 		URL:      url,
 		DocName:  docName,
@@ -78,8 +78,8 @@ func newClient(url, docName string) (*client.Client, *ygo.Array, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	items := ygo.NewArray(c.Doc(), "items")
-	items.Observe(func(e *ygo.ArrayEvent) {
+	items := threadwave.NewArray(c.Doc(), "items")
+	items.Observe(func(e *threadwave.ArrayEvent) {
 		log.Printf("items changed: %v", e.Delta)
 	})
 	return c, items, nil

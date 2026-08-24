@@ -4,7 +4,7 @@
 // A snapshot is encodeSnapshot(Y.snapshot(doc)) = writeDeleteSet(ds)
 // ++ writeStateVector(sv). The Go test in internal/encoding/
 // snapshot_fixture_test.go round-trips each hex (decode then re-encode)
-// and asserts byte-identical output, which proves ygo's snapshot codec
+// and asserts byte-identical output, which proves threadwave's snapshot codec
 // is byte-compatible with yjs including the descending client order in
 // the delete set. Multi-client scenarios specifically exercise that
 // ordering.

@@ -160,7 +160,7 @@ func TestAny_RoundTrip_Object(t *testing.T) {
 func TestAny_DecodeBigInt(t *testing.T) {
 	// 8-byte BE int64. Decoder must accept; encoder side does not
 	// currently emit BigInt (callers use int64/int → integer/float64).
-	// JS Yjs payloads containing BigInt must still round-trip on Go.
+	// JS Yjs pathreadloads containing BigInt must still round-trip on Go.
 	in := []byte{AnyTagBigInt, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2a}
 	out, tail, err := DecodeAny(in)
 	if err != nil {

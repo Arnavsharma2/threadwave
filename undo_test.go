@@ -1,18 +1,18 @@
-package ygo_test
+package threadwave_test
 
 import (
 	"testing"
 
-	"github.com/Deln0r/ygo"
+	"github.com/Arnavsharma2/threadwave"
 )
 
 // TestUndoManager_PublicAPI exercises the top-level UndoManager surface
 // the way an external consumer would: construct shared types, wrap them
 // in an UndoManager, edit, undo, redo.
 func TestUndoManager_PublicAPI(t *testing.T) {
-	d := ygo.NewDoc()
-	m := ygo.NewMap(d, "settings")
-	um := ygo.NewUndoManager(d, m)
+	d := threadwave.NewDoc()
+	m := threadwave.NewMap(d, "settings")
+	um := threadwave.NewUndoManager(d, m)
 	defer um.Close()
 
 	txn := d.WriteTxn()
@@ -44,10 +44,10 @@ func TestUndoManager_PublicAPI(t *testing.T) {
 // TestUndoManager_MultiScope verifies an UndoManager can watch more
 // than one shared type at once.
 func TestUndoManager_MultiScope(t *testing.T) {
-	d := ygo.NewDoc()
-	m := ygo.NewMap(d, "m")
-	a := ygo.NewArray(d, "a")
-	um := ygo.NewUndoManager(d, m, a)
+	d := threadwave.NewDoc()
+	m := threadwave.NewMap(d, "m")
+	a := threadwave.NewArray(d, "a")
+	um := threadwave.NewUndoManager(d, m, a)
 	defer um.Close()
 
 	txn := d.WriteTxn()
@@ -82,9 +82,9 @@ func TestUndoManager_MultiScope(t *testing.T) {
 // TestUndoManager_WithOptions verifies the options constructor compiles
 // and behaves (every edit its own step when grouping is disabled).
 func TestUndoManager_WithOptions(t *testing.T) {
-	d := ygo.NewDoc()
-	a := ygo.NewArray(d, "a")
-	um := ygo.NewUndoManagerWithOptions(d, ygo.UndoManagerOptions{
+	d := threadwave.NewDoc()
+	a := threadwave.NewArray(d, "a")
+	um := threadwave.NewUndoManagerWithOptions(d, threadwave.UndoManagerOptions{
 		CaptureTimeout: -1, // disable grouping: each txn is its own step
 	}, a)
 	defer um.Close()

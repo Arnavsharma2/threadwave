@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Deln0r/ygo/gomobile"
+	"github.com/Arnavsharma2/threadwave/gomobile"
 )
 
 // TestMobile_Collections_RoundTrip drives the full type set a real app

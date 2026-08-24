@@ -4,7 +4,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Deln0r/ygo/gomobile"
+	"github.com/Arnavsharma2/threadwave/gomobile"
 )
 
 // TestMobile_ConcurrentConnectClose fires Connect and Close concurrently

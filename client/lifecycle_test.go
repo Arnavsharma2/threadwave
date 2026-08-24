@@ -5,8 +5,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Deln0r/ygo/client"
-	"github.com/Deln0r/ygo/internal/doc"
+	"github.com/Arnavsharma2/threadwave/client"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
 )
 
 // TestClient_ConcurrentConnectClose fires Connect and Close concurrently

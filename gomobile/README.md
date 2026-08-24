@@ -1,9 +1,9 @@
 # gomobile binding
 
-App-level mobile SDK for ygo via [`gomobile bind`](https://pkg.go.dev/golang.org/x/mobile/cmd/gomobile),
+App-level mobile SDK for threadwave via [`gomobile bind`](https://pkg.go.dev/golang.org/x/mobile/cmd/gomobile),
 the official Go cross-compilation toolchain for iOS and Android.
 
-The main `ygo` package exposes a fully idiomatic Go API (channels,
+The main `threadwave` package exposes a fully idiomatic Go API (channels,
 `any`, callbacks, generics) that `gomobile bind` cannot generate
 bindings for. This subpackage wraps those types with a bind-safe
 surface so an iOS / Android app can edit a document and render UI
@@ -15,7 +15,7 @@ while sync runs in the background.
   UTF-16 indices) and `Map` (string keys/values), `UndoManager`,
   cursor anchors (`Text.EncodeCursor` / `ResolveCursor`), and a sync
   `Client` (`NewClient` / `Connect` / `Listener`) that connects to a
-  yserve / Hocuspocus / y-websocket server.
+  threadserve / Hocuspocus / y-websocket server.
 - **Wire level** — bytes-in / bytes-out (`ApplyUpdate`,
   `EncodeStateAsUpdate`, `EncodeDiff`) for adopters bringing their own
   transport.
@@ -154,18 +154,18 @@ go install golang.org/x/mobile/cmd/gomobile@latest
 go install golang.org/x/mobile/cmd/gobind@latest
 $(go env GOPATH)/bin/gomobile init
 
-# In a fresh checkout of github.com/Deln0r/ygo:
+# In a fresh checkout of github.com/Arnavsharma2/threadwave:
 go get golang.org/x/mobile/bind   # gomobile build dependency
 $(go env GOPATH)/bin/gomobile bind -target=ios,iossimulator \
-    -o /tmp/Ygo.xcframework \
-    github.com/Deln0r/ygo/gomobile
+    -o /tmp/Threadwave.xcframework \
+    github.com/Arnavsharma2/threadwave/gomobile
 ```
 
 Produces a `.xcframework` containing:
-- `ios-arm64/Ygo.framework` (~6.6 MB) — real-device slice (arm64)
-- `ios-arm64_x86_64-simulator/Ygo.framework` (~13 MB) — simulator slice (arm64 + x86_64, fat)
+- `ios-arm64/Threadwave.framework` (~6.6 MB) — real-device slice (arm64)
+- `ios-arm64_x86_64-simulator/Threadwave.framework` (~13 MB) — simulator slice (arm64 + x86_64, fat)
 - Auto-generated Objective-C headers in each slice's `Headers/` dir
-  (`Ygo.h`, `Gomobile.objc.h`, `Universe.objc.h`, `ref.h`)
+  (`Threadwave.h`, `Gomobile.objc.h`, `Universe.objc.h`, `ref.h`)
 
 Drag the `.xcframework` into Xcode under "Frameworks, Libraries,
 and Embedded Content"; the auto-generated Swift bridging header
@@ -191,8 +191,8 @@ go get golang.org/x/mobile/bind   # gomobile build dependency
 $(go env GOPATH)/bin/gomobile bind \
     -target=android \
     -androidapi 21 \
-    -o /tmp/ygo.aar \
-    github.com/Deln0r/ygo/gomobile
+    -o /tmp/threadwave.aar \
+    github.com/Arnavsharma2/threadwave/gomobile
 ```
 
 Produces an `.aar` (Android archive) ~8.4 MB containing native
@@ -215,7 +215,7 @@ Plus `classes.jar` exposing the Java surface:
 - `go.Seq` + supporting runtime classes
 
 Drop the `.aar` into your Android Studio project's
-`app/libs/` directory, add `implementation files('libs/ygo.aar')`
+`app/libs/` directory, add `implementation files('libs/threadwave.aar')`
 to `build.gradle`, and `import gomobile.Doc;` from Kotlin or
 Java. Verified on Android Studio Ladybug + NDK 27.0 + Go 1.26 /
 macOS 26 Apple Silicon (May 2026).

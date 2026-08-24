@@ -1,5 +1,5 @@
 // Package benchmarks ports the dmonad/crdt-benchmarks B1-B4 workload
-// suite to ygo. The benchmark IDs (B1.1 .. B4) match the upstream
+// suite to threadwave. The benchmark IDs (B1.1 .. B4) match the upstream
 // spec verbatim so cross-implementation comparison stays apples-to-
 // apples — see README in https://github.com/dmonad/crdt-benchmarks
 // for the canonical descriptions.
@@ -26,7 +26,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/Deln0r/ygo"
+	"github.com/Arnavsharma2/threadwave"
 )
 
 // N is the canonical operation count per dmonad/crdt-benchmarks B1
@@ -47,10 +47,10 @@ const N3 = 489
 // on the benchmark. Call once at the end of an "ops" sub-benchmark
 // after the doc has been fully built — the cost of encoding is
 // excluded from the timing.
-func reportSize(b *testing.B, d *ygo.Doc) {
+func reportSize(b *testing.B, d *threadwave.Doc) {
 	b.Helper()
-	v1 := ygo.EncodeStateAsUpdate(d)
-	v2 := ygo.EncodeStateAsUpdateV2(d)
+	v1 := threadwave.EncodeStateAsUpdate(d)
+	v2 := threadwave.EncodeStateAsUpdateV2(d)
 	b.ReportMetric(float64(len(v1)), "docBytesV1")
 	b.ReportMetric(float64(len(v2)), "docBytesV2")
 }
@@ -58,41 +58,41 @@ func reportSize(b *testing.B, d *ygo.Doc) {
 // benchEncodeV1 / benchEncodeV2 / benchParseV1 / benchParseV2 are
 // the four canonical wire-format sub-benchmarks. Each takes a
 // pre-built doc and reports avg time across b.N iterations.
-func benchEncodeV1(b *testing.B, build func() *ygo.Doc) {
+func benchEncodeV1(b *testing.B, build func() *threadwave.Doc) {
 	d := build()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = ygo.EncodeStateAsUpdate(d)
+		_ = threadwave.EncodeStateAsUpdate(d)
 	}
 }
 
-func benchEncodeV2(b *testing.B, build func() *ygo.Doc) {
+func benchEncodeV2(b *testing.B, build func() *threadwave.Doc) {
 	d := build()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = ygo.EncodeStateAsUpdateV2(d)
+		_ = threadwave.EncodeStateAsUpdateV2(d)
 	}
 }
 
-func benchParseV1(b *testing.B, build func() *ygo.Doc) {
+func benchParseV1(b *testing.B, build func() *threadwave.Doc) {
 	d := build()
-	bytes := ygo.EncodeStateAsUpdate(d)
+	bytes := threadwave.EncodeStateAsUpdate(d)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		dst := ygo.NewDoc()
-		if err := ygo.ApplyUpdate(dst, bytes); err != nil {
+		dst := threadwave.NewDoc()
+		if err := threadwave.ApplyUpdate(dst, bytes); err != nil {
 			b.Fatalf("ApplyUpdate: %v", err)
 		}
 	}
 }
 
-func benchParseV2(b *testing.B, build func() *ygo.Doc) {
+func benchParseV2(b *testing.B, build func() *threadwave.Doc) {
 	d := build()
-	bytes := ygo.EncodeStateAsUpdateV2(d)
+	bytes := threadwave.EncodeStateAsUpdateV2(d)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		dst := ygo.NewDoc()
-		if err := ygo.ApplyUpdateV2(dst, bytes); err != nil {
+		dst := threadwave.NewDoc()
+		if err := threadwave.ApplyUpdateV2(dst, bytes); err != nil {
 			b.Fatalf("ApplyUpdateV2: %v", err)
 		}
 	}
@@ -101,7 +101,7 @@ func benchParseV2(b *testing.B, build func() *ygo.Doc) {
 // runStandardSuite runs all four wire-format sub-benchmarks against
 // a build-doc closure. Call from each B*_test top-level after
 // timing the "ops" workload itself.
-func runStandardSuite(b *testing.B, build func() *ygo.Doc) {
+func runStandardSuite(b *testing.B, build func() *threadwave.Doc) {
 	b.Helper()
 	b.Run("encode_v1", func(b *testing.B) { benchEncodeV1(b, build) })
 	b.Run("encode_v2", func(b *testing.B) { benchEncodeV2(b, build) })

@@ -3,7 +3,7 @@ package gomobile
 import (
 	"encoding/json"
 
-	"github.com/Deln0r/ygo/internal/types"
+	"github.com/Arnavsharma2/threadwave/internal/types"
 )
 
 // TextChangeListener receives text change deltas. Implement it in

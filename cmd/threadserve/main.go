@@ -1,4 +1,4 @@
-// Command yserve is a self-hosted Yjs sync server in a single static
+// Command threadserve is a self-hosted Yjs sync server in a single static
 // binary: a drop-in replacement for a Hocuspocus deployment with no
 // Node runtime, no Redis, and no CGO.
 //
@@ -10,7 +10,7 @@
 //
 // Usage:
 //
-//	yserve [-addr :8080] [-store path/to/ygo.db]
+//	threadserve [-addr :8080] [-store path/to/threadwave.db]
 //	       [-version-interval 10m] [-keep-versions 10]
 //	       [-read-limit BYTES] [-awareness-timeout 30s]
 //	       [-max-awareness-clients 4096]
@@ -47,9 +47,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Deln0r/ygo/persist"
-	"github.com/Deln0r/ygo/persist/sqlite"
-	"github.com/Deln0r/ygo/server"
+	"github.com/Arnavsharma2/threadwave/persist"
+	"github.com/Arnavsharma2/threadwave/persist/sqlite"
+	"github.com/Arnavsharma2/threadwave/server"
 )
 
 func main() {
@@ -69,19 +69,19 @@ func main() {
 	if *storePath != "" {
 		s, err := sqlite.Open(*storePath)
 		if err != nil {
-			log.Fatalf("yserve: open store %q: %v", *storePath, err)
+			log.Fatalf("threadserve: open store %q: %v", *storePath, err)
 		}
 		defer s.Close()
 		store = s
-		log.Printf("yserve: persistence enabled (sqlite at %s)", *storePath)
+		log.Printf("threadserve: persistence enabled (sqlite at %s)", *storePath)
 	} else {
-		log.Printf("yserve: in-memory only (pass -store to persist)")
+		log.Printf("threadserve: in-memory only (pass -store to persist)")
 		if *versionInterval > 0 {
-			log.Fatalf("yserve: -version-interval requires -store")
+			log.Fatalf("threadserve: -version-interval requires -store")
 		}
 	}
 	if *versionInterval > 0 {
-		log.Printf("yserve: auto-versioning every %s (keep %d)", *versionInterval, *keepVersions)
+		log.Printf("threadserve: auto-versioning every %s (keep %d)", *versionInterval, *keepVersions)
 	}
 
 	srv := server.New(server.Options{
@@ -108,23 +108,23 @@ func main() {
 		sig := make(chan os.Signal, 1)
 		signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 		<-sig
-		log.Printf("yserve: shutting down")
+		log.Printf("threadserve: shutting down")
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		if err := httpSrv.Shutdown(ctx); err != nil {
-			log.Printf("yserve: HTTP shutdown: %v", err)
+			log.Printf("threadserve: HTTP shutdown: %v", err)
 		}
 		if err := srv.Close(ctx); err != nil {
-			log.Printf("yserve: store flush: %v", err)
+			log.Printf("threadserve: store flush: %v", err)
 		}
 		close(idleConnsClosed)
 	}()
 
-	log.Printf("yserve: listening on %s", *addr)
+	log.Printf("threadserve: listening on %s", *addr)
 	if err := httpSrv.ListenAndServe(); err != http.ErrServerClosed {
-		log.Fatalf("yserve: %v", err)
+		log.Fatalf("threadserve: %v", err)
 	}
 	<-idleConnsClosed
-	log.Printf("yserve: stopped")
+	log.Printf("threadserve: stopped")
 }

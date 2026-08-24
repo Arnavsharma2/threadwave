@@ -675,7 +675,7 @@ func findPosition(
 ```go
 func (a *Array) Insert(tx *doc.TransactionMut, index int, value any) error {
     if index < 0 || index > int(a.branch.BlockLen) {
-        return fmt.Errorf("ygo: array index %d out of range [0, %d]", index, a.branch.BlockLen)
+        return fmt.Errorf("threadwave: array index %d out of range [0, %d]", index, a.branch.BlockLen)
     }
     var left, right *block.Item
     switch {
@@ -688,7 +688,7 @@ func (a *Array) Insert(tx *doc.TransactionMut, index int, value any) error {
     default:                                                    // middle
         var ok bool
         left, right, ok = findPosition(tx, a.branch, index)
-        if !ok { return fmt.Errorf("ygo: findPosition failed for index %d", index) }
+        if !ok { return fmt.Errorf("threadwave: findPosition failed for index %d", index) }
     }
     content, err := contentFromAny(value)
     if err != nil { return err }
@@ -761,7 +761,7 @@ func (a *Array) Remove(tx *doc.TransactionMut, idx int) error {
 
 func (a *Array) RemoveRange(tx *doc.TransactionMut, idx, length int) error {
     if idx < 0 || idx+length > int(a.branch.BlockLen) {
-        return fmt.Errorf("ygo: range [%d, %d) out of bounds [0, %d)", idx, idx+length, a.branch.BlockLen)
+        return fmt.Errorf("threadwave: range [%d, %d) out of bounds [0, %d)", idx, idx+length, a.branch.BlockLen)
     }
     // Split at start if mid-block; split at end if mid-block; tx.Delete every fully-covered item.
     // Direct port of BlockIter::delete with rel/len handling.

@@ -36,7 +36,7 @@ type Item struct {
 	Origin      *ID
 	RightOrigin *ID
 
-	// User payload.
+	// User pathreadload.
 	Content Content
 
 	// Owning collection. Stored items always have Parent.IsResolved.

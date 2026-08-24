@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/Deln0r/ygo/internal/block"
+	"github.com/Arnavsharma2/threadwave/internal/block"
 )
 
 // FuzzDecodeRelativePosition feeds arbitrary bytes to the cursor/anchor

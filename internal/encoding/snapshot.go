@@ -3,9 +3,9 @@ package encoding
 import (
 	"sort"
 
-	"github.com/Deln0r/ygo/internal/block"
-	"github.com/Deln0r/ygo/internal/lib0"
-	"github.com/Deln0r/ygo/internal/store"
+	"github.com/Arnavsharma2/threadwave/internal/block"
+	"github.com/Arnavsharma2/threadwave/internal/lib0"
+	"github.com/Arnavsharma2/threadwave/internal/store"
 )
 
 // Snapshot is a point-in-time marker of a document's history: the set

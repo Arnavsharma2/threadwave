@@ -23,8 +23,8 @@ func TestEncodeDecodeSyncStep1_RoundTrip(t *testing.T) {
 	if frame.SyncSub != SyncStep1 {
 		t.Errorf("SyncSub = %d, want SyncStep1", frame.SyncSub)
 	}
-	if !bytes.Equal(frame.Payload, sv) {
-		t.Errorf("Payload = %x, want %x", frame.Payload, sv)
+	if !bytes.Equal(frame.Pathreadload, sv) {
+		t.Errorf("Pathreadload = %x, want %x", frame.Pathreadload, sv)
 	}
 }
 
@@ -36,8 +36,8 @@ func TestEncodeDecodeSyncStep2_RoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if frame.SyncSub != SyncStep2 || !bytes.Equal(frame.Payload, update) {
-		t.Errorf("got SyncSub=%d Payload=%x, want SyncStep2 %x", frame.SyncSub, frame.Payload, update)
+	if frame.SyncSub != SyncStep2 || !bytes.Equal(frame.Pathreadload, update) {
+		t.Errorf("got SyncSub=%d Pathreadload=%x, want SyncStep2 %x", frame.SyncSub, frame.Pathreadload, update)
 	}
 }
 
@@ -49,8 +49,8 @@ func TestEncodeDecodeSyncUpdate_RoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if frame.SyncSub != SyncUpdate || !bytes.Equal(frame.Payload, update) {
-		t.Errorf("got SyncSub=%d Payload=%x, want SyncUpdate %x", frame.SyncSub, frame.Payload, update)
+	if frame.SyncSub != SyncUpdate || !bytes.Equal(frame.Pathreadload, update) {
+		t.Errorf("got SyncSub=%d Pathreadload=%x, want SyncUpdate %x", frame.SyncSub, frame.Pathreadload, update)
 	}
 }
 
@@ -62,12 +62,12 @@ func TestEncodeDecodeAwareness_RoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if frame.Type != MessageAwareness || !bytes.Equal(frame.Payload, awUpdate) {
-		t.Errorf("got Type=%d Payload=%x, want MessageAwareness %x", frame.Type, frame.Payload, awUpdate)
+	if frame.Type != MessageAwareness || !bytes.Equal(frame.Pathreadload, awUpdate) {
+		t.Errorf("got Type=%d Pathreadload=%x, want MessageAwareness %x", frame.Type, frame.Pathreadload, awUpdate)
 	}
 }
 
-func TestEncodeDecodeQueryAwareness_EmptyPayload(t *testing.T) {
+func TestEncodeDecodeQueryAwareness_EmptyPathreadload(t *testing.T) {
 	wire := EncodeQueryAwareness()
 	if !bytes.Equal(wire, []byte{0x03}) {
 		t.Errorf("wire = %x, want [03]", wire)
@@ -79,12 +79,12 @@ func TestEncodeDecodeQueryAwareness_EmptyPayload(t *testing.T) {
 	if frame.Type != MessageQueryAwareness {
 		t.Errorf("Type = %d, want MessageQueryAwareness", frame.Type)
 	}
-	if len(frame.Payload) != 0 {
-		t.Errorf("Payload non-empty: %x", frame.Payload)
+	if len(frame.Pathreadload) != 0 {
+		t.Errorf("Pathreadload non-empty: %x", frame.Pathreadload)
 	}
 }
 
-func TestEncodeDecodePong_EmptyPayload(t *testing.T) {
+func TestEncodeDecodePong_EmptyPathreadload(t *testing.T) {
 	wire := EncodePong()
 	if !bytes.Equal(wire, []byte{0x0a}) {
 		t.Errorf("wire = %x, want [0a]", wire)
@@ -114,7 +114,7 @@ func TestDecode_UnknownSyncSubType_ReturnsErr(t *testing.T) {
 	}
 }
 
-func TestDecode_UnknownMessageType_PayloadOpaque(t *testing.T) {
+func TestDecode_UnknownMessageType_PathreadloadOpaque(t *testing.T) {
 	// MessageType 99 with three opaque bytes after.
 	wire := []byte{0x63, 0xaa, 0xbb, 0xcc}
 	frame, tail, err := DecodeEnvelope(wire)
@@ -125,8 +125,8 @@ func TestDecode_UnknownMessageType_PayloadOpaque(t *testing.T) {
 		t.Errorf("Type = %d, want 99", frame.Type)
 	}
 	want := []byte{0xaa, 0xbb, 0xcc}
-	if !bytes.Equal(frame.Payload, want) {
-		t.Errorf("Payload = %x, want %x", frame.Payload, want)
+	if !bytes.Equal(frame.Pathreadload, want) {
+		t.Errorf("Pathreadload = %x, want %x", frame.Pathreadload, want)
 	}
 	if len(tail) != 0 {
 		t.Errorf("tail = %x, want empty", tail)
@@ -138,7 +138,7 @@ func TestEncodeSyncStep1_WireBytesMatchKnownLayout(t *testing.T) {
 	//   0x00       varuint(0) = MessageSync
 	//   0x00       varuint(0) = SyncStep1
 	//   0x02       varuint(2) = SV byte length
-	//   0x01 0x05  SV payload
+	//   0x01 0x05  SV pathreadload
 	sv := []byte{0x01, 0x05}
 	got := EncodeSyncStep1(sv)
 	want := []byte{0x00, 0x00, 0x02, 0x01, 0x05}
@@ -148,10 +148,10 @@ func TestEncodeSyncStep1_WireBytesMatchKnownLayout(t *testing.T) {
 }
 
 func TestEncodeAwareness_WireBytesMatchKnownLayout(t *testing.T) {
-	// Awareness payload bytes [0xaa]:
+	// Awareness pathreadload bytes [0xaa]:
 	//   0x01  varuint(1) = MessageAwareness
-	//   0x01  varuint(1) = payload byte length
-	//   0xaa  payload byte
+	//   0x01  varuint(1) = pathreadload byte length
+	//   0xaa  pathreadload byte
 	got := EncodeAwareness([]byte{0xaa})
 	want := []byte{0x01, 0x01, 0xaa}
 	if !bytes.Equal(got, want) {

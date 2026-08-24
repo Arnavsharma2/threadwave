@@ -1,4 +1,4 @@
-# ygo development makefile.
+# threadwave development makefile.
 #
 # Run `make check` before every commit. CI runs the same set; if
 # `make check` is green locally, the PR will be green too (modulo

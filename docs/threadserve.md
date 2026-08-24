@@ -1,6 +1,6 @@
-# yserve — self-hosted Yjs server in a single binary
+# threadserve — self-hosted Yjs server in a single binary
 
-yserve is a self-hosted Yjs sync backend that replaces a
+threadserve is a self-hosted Yjs sync backend that replaces a
 [Hocuspocus](https://github.com/ueberdosis/hocuspocus) deployment with
 one static binary: same wire protocol, so your existing
 `@hocuspocus/provider` and `y-websocket` clients connect unchanged.
@@ -14,15 +14,15 @@ Go target.
 ## Quick start
 
 ```bash
-go install github.com/Deln0r/ygo/cmd/yserve@latest
-yserve -addr :8080 -store data.db
+go install github.com/Arnavsharma2/threadwave/cmd/threadserve@latest
+threadserve -addr :8080 -store data.db
 ```
 
 or with Docker:
 
 ```bash
-docker build -t yserve https://github.com/Deln0r/ygo.git
-docker run -p 8080:8080 -v yserve-data:/data yserve
+docker build -t threadserve https://github.com/Arnavsharma2/threadwave.git
+docker run -p 8080:8080 -v threadserve-data:/data threadserve
 ```
 
 Point any Yjs client at it — nothing about the client changes:
@@ -64,13 +64,13 @@ update log: log compaction never touches history, and pruning history
 never touches live state. Restore is atomic.
 
 Versions are managed programmatically via the
-[`persist`](https://pkg.go.dev/github.com/Deln0r/ygo/persist) package:
+[`persist`](https://pkg.go.dev/github.com/Arnavsharma2/threadwave/persist) package:
 
 ```go
 store, _ := sqlite.Open("data.db")
 infos, _ := store.ListVersions(ctx, "my-document")          // metadata
 docAt, _ := persist.LoadVersion(ctx, store, "my-document",  // inspect
-    infos[0].ID, ygo.Options{})
+    infos[0].ID, threadwave.Options{})
 _ = store.RestoreVersion(ctx, "my-document", infos[0].ID)   // roll back
 ```
 
@@ -79,7 +79,7 @@ paid Tiptap Cloud feature.
 
 ## Protocol coverage
 
-yserve speaks the full 8-message Hocuspocus envelope: Sync (Step1 /
+threadserve speaks the full 8-message Hocuspocus envelope: Sync (Step1 /
 Step2 / Update), Awareness, QueryAwareness, Auth, Stateless,
 BroadcastStateless, Close, SyncStatus. Authentication plugs in via
 `server.Options.OnAuthenticate`; the stateless channel via
@@ -97,21 +97,21 @@ a client-side change from `@y-sweet/client` to `@hocuspocus/provider`
 or `y-websocket` (both standard Yjs ecosystem providers). Server-side,
 documents transfer as regular Yjs updates: export each doc's state
 (`Y.encodeStateAsUpdate` through any y-sweet client) and replay it
-into yserve, or write the update blobs straight into the SQLite store
+into threadserve, or write the update blobs straight into the SQLite store
 via the `persist` API.
 
 ## Migrating from Hocuspocus
 
 Drop-in for the wire protocol: keep your providers, change the URL.
 Server-side extension hooks differ — Hocuspocus extensions are
-JavaScript; yserve's equivalents are Go callbacks (`OnAuthenticate`,
+JavaScript; threadserve's equivalents are Go callbacks (`OnAuthenticate`,
 `OnStateless`) plus the `persist.Store` interface for custom storage
 backends.
 
 ## Embedding in your own Go backend
 
-yserve is a thin flag-parsing wrapper around
-[`server`](https://pkg.go.dev/github.com/Deln0r/ygo/server), which
+threadserve is a thin flag-parsing wrapper around
+[`server`](https://pkg.go.dev/github.com/Arnavsharma2/threadwave/server), which
 mounts as a standard `http.Handler`:
 
 ```go
@@ -146,7 +146,7 @@ srv := server.New(server.Options{
 ```
 
 It is library-only by design: a per-request predicate cannot be a CLI
-flag, so yserve exposes no equivalent option. A rejected edit is dropped
+flag, so threadserve exposes no equivalent option. A rejected edit is dropped
 silently, so it remains in the client's local document; a read-only
 client should disable editing in its UI (and reload or re-sync if it
 edited anyway) to avoid diverging from the server. Server-side
@@ -155,10 +155,10 @@ enforcement is the backstop, not the client's only guard.
 ## Operational notes
 
 - **Single-writer storage.** SQLite serializes writes at the file
-  lock; run one yserve per database file. Horizontal multi-node relay
+  lock; run one threadserve per database file. Horizontal multi-node relay
   is not built in (if you need cross-node fan-out today, put a
   sticky-session load balancer in front and shard documents by path).
 - **Graceful shutdown.** SIGINT/SIGTERM flushes every open document's
   update log into a single compacted snapshot before exit.
-- **`ygo-server`** is the deprecated former name of this binary; it
-  still builds and runs, but new flags land in yserve only.
+- **`threadwave-server`** is the deprecated former name of this binary; it
+  still builds and runs, but new flags land in threadserve only.

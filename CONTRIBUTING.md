@@ -1,4 +1,4 @@
-# Contributing to ygo
+# Contributing to threadwave
 
 Thanks for your interest. This document explains how to contribute.
 
@@ -34,7 +34,7 @@ If your change touches encoding/decoding paths:
 
 - Search existing issues first.
 - Include `yjs` JS reproduction code when reporting protocol divergence.
-- Include Go version, `ygo` version (commit SHA), and OS.
+- Include Go version, `threadwave` version (commit SHA), and OS.
 
 ## Pull requests
 

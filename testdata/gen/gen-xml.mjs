@@ -9,7 +9,7 @@
 //   update_hex      — Y.encodeStateAsUpdate(doc) as lowercase hex
 //   expected_xml    — HTML-like string produced by JS toString()
 //                     with attributes sorted ascending (matches
-//                     our ygo XmlFragment.ToString output)
+//                     our threadwave XmlFragment.ToString output)
 //
 // Run: node gen-xml.mjs (after npm install in this directory).
 

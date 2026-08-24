@@ -6,7 +6,7 @@
 //      set AND the client-struct runs to be emitted in DESCENDING
 //      client order to match yjs byte-for-byte.
 //   2. wide client IDs (> 2^32), which yjs@14 will produce as it widens
-//      clientID from 32 to 53 bits. ygo already uses uint64 + varint
+//      clientID from 32 to 53 bits. threadwave already uses uint64 + varint
 //      throughout; this locks that in against regression and proves
 //      forward-compatibility with the v14 clientID space.
 //

@@ -1,6 +1,6 @@
 # Benchmarks
 
-Performance baseline for ygo, ported from the canonical
+Performance baseline for threadwave, ported from the canonical
 [`dmonad/crdt-benchmarks`](https://github.com/dmonad/crdt-benchmarks)
 suite. Same benchmark IDs (B1.1, B1.2, ... B4) and same workload
 shapes so cross-implementation comparison stays apples-to-apples.
@@ -165,14 +165,14 @@ to WASM, called from JS via wasm-bindgen). The published numbers
 were measured on **Intel® Core™ i5-8400 @ 2.80 GHz × 6 with
 Node 20.5.0**. Ours were measured on **Apple M3 with Go 1.26.3**.
 Hardware and runtime differ, so this is not an apples-to-apples
-benchmark — but it places ygo in the same order of magnitude
+benchmark — but it places threadwave in the same order of magnitude
 on the canonical workload and identifies where the remaining
 gaps are.
 
 B4 (real-world LaTeX paper trace, 259,778 edits → 104,852-char
 document):
 
-| Metric                | yjs (Node)  | ywasm (WASM) | ygo V1 | ygo V2 |
+| Metric                | yjs (Node)  | ywasm (WASM) | threadwave V1 | threadwave V2 |
 |-----------------------|------------:|-------------:|-------:|-------:|
 | Apply edits (ms)      |       5,714 |       28,675 | 20,259 | 20,259 |
 | Encode (ms)           |          11 |            3 |    0.6 |   10.5 |
@@ -185,16 +185,16 @@ Notes:
 - **ywasm is NOT a fair representative of native yrs.** wasm-
   bindgen adds substantial overhead (~5× on this workload per
   the table above); native yrs's own benchmarks ship sub-1-second
-  B4 numbers. A direct ygo-vs-native-yrs run under identical
+  B4 numbers. A direct threadwave-vs-native-yrs run under identical
   hardware is on the roadmap but not yet executed.
-- **ygo V1 doc size is within ~1.40× of yjs's V1** (223,414 vs
+- **threadwave V1 doc size is within ~1.40× of yjs's V1** (223,414 vs
   159,929 bytes). The historical ~12× bloat (1.97 MB, visible in
   this table before June 2026) is resolved: commit-time block
   squash merges per-character insert runs at commit, and GC frees
   deleted content, the same merging yjs performs. The remaining
   1.4× gap comes from runs that cross transaction boundaries less
   favourably than yjs's in-memory merge timing.
-- **ygo V2 doc size matches yjs byte-for-byte-scale** (159,921 vs
+- **threadwave V2 doc size matches yjs byte-for-byte-scale** (159,921 vs
   159,929 bytes — parity). V2's per-column RLE compression plus
   commit-time GC dedupe everything the squash reaches and more.
   V2 is the right choice for persistence and snapshots.
@@ -213,7 +213,7 @@ Notes:
   the hot-path default; V2 remains the persistence format where
   its size parity with yjs pays.
 
-A proper cross-impl harness that runs ygo + native yrs +
+A proper cross-impl harness that runs threadwave + native yrs +
 yjs through a single comparison runner under identical
 hardware is on the [tech-debt list](docs/tech-debt.md). The
 numbers above are honest absolute figures with hardware
@@ -232,11 +232,11 @@ go test -bench=. -benchtime=5x -count=5 -benchmem ./benchmarks/ | tee bench.txt
 benchstat bench.txt
 ```
 
-## Server transport (ygo-only)
+## Server transport (threadwave-only)
 
 The WebSocket sync server (`server`) has its own benchmarks in
 `server/bench_test.go`. There is no yrs equivalent to compare against
-(yrs ships no server), so these are absolute ygo figures.
+(yrs ships no server), so these are absolute threadwave figures.
 
 Run:
 
@@ -256,7 +256,7 @@ Baseline (Apple M3, Go 1.26.3, loopback httptest server, coder/websocket):
 *Broadcast fan-out* is one client sending a fixed `SyncUpdate` and reading
 its own broadcast echo while N-1 idle peers drain their copies. It
 isolates the server's apply + fan-out cost from client encoding (the
-payload is pre-built and constant). Cost scales roughly linearly with the
+pathreadload is pre-built and constant). Cost scales roughly linearly with the
 room size, about 4.4 µs of marginal fan-out per additional peer on top of
 ~24 µs of base round-trip, as expected for a per-peer serialized write.
 
@@ -271,7 +271,7 @@ stalling the fan-out.
 
 ## Load test (multi-client, full stack)
 
-`cmd/yload` is a load generator built on the public `client` package: every
+`cmd/threadload` is a load generator built on the public `client` package: every
 connection is a real sync client (full handshake), the first W connections
 of each room write a timestamp string every interval, and every connected
 client (including the writer, whose broadcast echoes back) records
@@ -279,12 +279,12 @@ write-to-observe propagation latency. Zero-loss is checked by accounting:
 observations must equal writes x room size.
 
 ```
-go build ./cmd/yload/
-./yload -url ws://127.0.0.1:8080 -rooms 50 -conns 30 -writers 2 \
+go build ./cmd/threadload/
+./threadload -url ws://127.0.0.1:8080 -rooms 50 -conns 30 -writers 2 \
         -interval 400ms -duration 25s -connrate 200
 ```
 
-Measured 2026-07-16 against `yserve` v1.14.0 with
+Measured 2026-07-16 against `threadserve` v1.14.0 with
 `-max-conns 2000 -max-conns-per-doc 500 -max-docs 1000` and a SQLite (WAL)
 store.
 

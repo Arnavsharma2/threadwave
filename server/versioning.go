@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Deln0r/ygo/persist"
+	"github.com/Arnavsharma2/threadwave/persist"
 )
 
 // startVersioning launches the periodic auto-versioning loop when the

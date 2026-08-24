@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Deln0r/ygo/internal/block"
+	"github.com/Arnavsharma2/threadwave/internal/block"
 )
 
 func TestReadTxn_BasicLifecycle(t *testing.T) {

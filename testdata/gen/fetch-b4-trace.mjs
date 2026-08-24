@@ -1,7 +1,7 @@
 // fetch-b4-trace.mjs downloads the dmonad/crdt-benchmarks B4
 // real-world editing trace (LaTeX paper edit history — 259,778
 // character-level operations, final document ~104k chars) and
-// converts it to a compact JSON shape ygo's benchmark consumes.
+// converts it to a compact JSON shape threadwave's benchmark consumes.
 //
 // Output: testdata/b4-trace.json — gitignored (~3 MB compact JSON).
 // Re-run on demand; the trace is upstream-stable so re-download is

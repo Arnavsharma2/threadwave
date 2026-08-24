@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Deln0r/ygo/persist/sqlite"
+	"github.com/Arnavsharma2/threadwave/persist/sqlite"
 )
 
 // TestOpen_FilePath_PersistsAcrossReopens proves that bytes written
@@ -16,7 +16,7 @@ import (
 // internal/persist/persist_test.go).
 func TestOpen_FilePath_PersistsAcrossReopens(t *testing.T) {
 	dir := t.TempDir()
-	path := filepath.Join(dir, "ygo-test.db")
+	path := filepath.Join(dir, "threadwave-test.db")
 	ctx := context.Background()
 
 	// Round 1: open, write, close.

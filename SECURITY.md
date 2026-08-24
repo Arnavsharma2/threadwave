@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-Ygo is in pre-1.0 development. Security fixes are applied to the latest tagged release on `main`. Older minor versions are not patched.
+Threadwave is in pre-1.0 development. Security fixes are applied to the latest tagged release on `main`. Older minor versions are not patched.
 
 | Version | Supported |
 | ------- | --------- |

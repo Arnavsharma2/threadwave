@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Deln0r/ygo/internal/awareness"
+	"github.com/Arnavsharma2/threadwave/internal/awareness"
 )
 
 // presenceWire builds a single-client awareness wire update for clientID id with

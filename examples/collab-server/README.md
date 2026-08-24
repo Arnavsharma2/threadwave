@@ -1,10 +1,10 @@
 # collab-server example
 
-A runnable example of **embedding** the ygo WebSocket sync server in your
+A runnable example of **embedding** the threadwave WebSocket sync server in your
 own Go backend and wiring its library-only extension points. It is
-documentation, not a product: [`cmd/yserve`](../../cmd/yserve) is the
+documentation, not a product: [`cmd/threadserve`](../../cmd/threadserve) is the
 batteries-included CLI server driven by flags; this example shows what the
-[`server`](https://pkg.go.dev/github.com/Deln0r/ygo/server) package
+[`server`](https://pkg.go.dev/github.com/Arnavsharma2/threadwave/server) package
 exposes to code that mounts it, which the CLI cannot express.
 
 ## Run

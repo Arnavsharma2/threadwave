@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/internal/encoding"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/encoding"
 )
 
 // VersionInfo is the metadata of one stored document version. The

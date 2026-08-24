@@ -27,7 +27,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/Deln0r/ygo"
+	"github.com/Arnavsharma2/threadwave"
 )
 
 // encoder selects between V1 and V2 wire formats.
@@ -47,11 +47,11 @@ func must(err error) {
 	}
 }
 
-func (e encoder) encode(d *ygo.Doc) []byte {
+func (e encoder) encode(d *threadwave.Doc) []byte {
 	if e == encV1 {
-		return ygo.EncodeStateAsUpdate(d)
+		return threadwave.EncodeStateAsUpdate(d)
 	}
-	return ygo.EncodeStateAsUpdateV2(d)
+	return threadwave.EncodeStateAsUpdateV2(d)
 }
 
 // scenario is the on-disk shape — mirrors fixture_test.go's
@@ -84,9 +84,9 @@ type fixtureFile struct {
 // Mutation closure is responsible for adding entries in
 // deterministic order — Map iteration in Go is random, so the
 // expected_map is recorded by querying explicit keys not via Range.
-func captureMap(enc encoder, description, rootName string, clientID uint64, keys []string, mutate func(*ygo.Map, *ygo.TransactionMut)) scenario {
-	d := ygo.NewDocWithOptions(ygo.Options{ClientID: clientID})
-	m := ygo.NewMap(d, rootName)
+func captureMap(enc encoder, description, rootName string, clientID uint64, keys []string, mutate func(*threadwave.Map, *threadwave.TransactionMut)) scenario {
+	d := threadwave.NewDocWithOptions(threadwave.Options{ClientID: clientID})
+	m := threadwave.NewMap(d, rootName)
 	txn := d.WriteTxn()
 	mutate(m, txn)
 	txn.Commit()
@@ -110,9 +110,9 @@ func captureMap(enc encoder, description, rootName string, clientID uint64, keys
 	}
 }
 
-func captureArray(enc encoder, description, rootName string, clientID uint64, mutate func(*ygo.Array, *ygo.TransactionMut)) scenario {
-	d := ygo.NewDocWithOptions(ygo.Options{ClientID: clientID})
-	a := ygo.NewArray(d, rootName)
+func captureArray(enc encoder, description, rootName string, clientID uint64, mutate func(*threadwave.Array, *threadwave.TransactionMut)) scenario {
+	d := threadwave.NewDocWithOptions(threadwave.Options{ClientID: clientID})
+	a := threadwave.NewArray(d, rootName)
 	txn := d.WriteTxn()
 	mutate(a, txn)
 	txn.Commit()
@@ -128,9 +128,9 @@ func captureArray(enc encoder, description, rootName string, clientID uint64, mu
 	}
 }
 
-func captureText(enc encoder, description, rootName string, clientID uint64, mutate func(*ygo.Text, *ygo.TransactionMut)) scenario {
-	d := ygo.NewDocWithOptions(ygo.Options{ClientID: clientID})
-	t := ygo.NewText(d, rootName)
+func captureText(enc encoder, description, rootName string, clientID uint64, mutate func(*threadwave.Text, *threadwave.TransactionMut)) scenario {
+	d := threadwave.NewDocWithOptions(threadwave.Options{ClientID: clientID})
+	t := threadwave.NewText(d, rootName)
 	txn := d.WriteTxn()
 	mutate(t, txn)
 	txn.Commit()
@@ -151,9 +151,9 @@ func captureText(enc encoder, description, rootName string, clientID uint64, mut
 // children as {kind:"element"|"text", name:?, text:?} so the
 // validator can verify both child kinds without instantiating
 // a parallel type system.
-func captureXml(enc encoder, description, rootName string, clientID uint64, mutate func(*ygo.XmlFragment, *ygo.TransactionMut)) scenario {
-	d := ygo.NewDocWithOptions(ygo.Options{ClientID: clientID})
-	f := ygo.NewXmlFragment(d, rootName)
+func captureXml(enc encoder, description, rootName string, clientID uint64, mutate func(*threadwave.XmlFragment, *threadwave.TransactionMut)) scenario {
+	d := threadwave.NewDocWithOptions(threadwave.Options{ClientID: clientID})
+	f := threadwave.NewXmlFragment(d, rootName)
 	txn := d.WriteTxn()
 	mutate(f, txn)
 	txn.Commit()
@@ -163,12 +163,12 @@ func captureXml(enc encoder, description, rootName string, clientID uint64, muta
 	var children []map[string]interface{}
 	f.Range(func(_ uint64, child any) bool {
 		switch c := child.(type) {
-		case *ygo.XmlElement:
+		case *threadwave.XmlElement:
 			children = append(children, map[string]interface{}{
 				"kind": "element",
 				"name": c.NodeName(),
 			})
-		case *ygo.XmlText:
+		case *threadwave.XmlText:
 			children = append(children, map[string]interface{}{
 				"kind": "text",
 				"text": c.String(),
@@ -191,17 +191,17 @@ func captureXml(enc encoder, description, rootName string, clientID uint64, muta
 func captureAll(enc encoder) []scenario {
 	return []scenario{
 		// --- Map ---
-		captureMap(enc, "empty Map", "x", 100, nil, func(_ *ygo.Map, _ *ygo.TransactionMut) {}),
+		captureMap(enc, "empty Map", "x", 100, nil, func(_ *threadwave.Map, _ *threadwave.TransactionMut) {}),
 
 		captureMap(enc, "single Map.Set string", "settings", 101,
 			[]string{"color"},
-			func(m *ygo.Map, txn *ygo.TransactionMut) {
+			func(m *threadwave.Map, txn *threadwave.TransactionMut) {
 				m.Set(txn, "color", "red")
 			}),
 
 		captureMap(enc, "Map across primitive value types", "x", 103,
 			[]string{"s", "i", "f", "b_true", "b_false", "nullval"},
-			func(m *ygo.Map, txn *ygo.TransactionMut) {
+			func(m *threadwave.Map, txn *threadwave.TransactionMut) {
 				m.Set(txn, "s", "hello")
 				m.Set(txn, "i", int64(42))
 				m.Set(txn, "f", 3.14)
@@ -212,7 +212,7 @@ func captureAll(enc encoder) []scenario {
 
 		captureMap(enc, "Map LWW chain on same key", "x", 104,
 			[]string{"k"},
-			func(m *ygo.Map, txn *ygo.TransactionMut) {
+			func(m *threadwave.Map, txn *threadwave.TransactionMut) {
 				m.Set(txn, "k", "first")
 				m.Set(txn, "k", "second")
 				m.Set(txn, "k", "third")
@@ -220,7 +220,7 @@ func captureAll(enc encoder) []scenario {
 
 		captureMap(enc, "Map.Set + Map.Delete", "x", 105,
 			[]string{"a", "b"},
-			func(m *ygo.Map, txn *ygo.TransactionMut) {
+			func(m *threadwave.Map, txn *threadwave.TransactionMut) {
 				m.Set(txn, "a", "alpha")
 				m.Set(txn, "b", "beta")
 				m.Delete(txn, "a")
@@ -228,70 +228,70 @@ func captureAll(enc encoder) []scenario {
 
 		captureMap(enc, "Map with unicode keys and values", "x", 107,
 			[]string{"ключ", "emoji"},
-			func(m *ygo.Map, txn *ygo.TransactionMut) {
+			func(m *threadwave.Map, txn *threadwave.TransactionMut) {
 				m.Set(txn, "ключ", "значение")
 				m.Set(txn, "emoji", "ok")
 			}),
 
 		// --- Array ---
-		captureArray(enc, "empty Array", "x", 200, func(_ *ygo.Array, _ *ygo.TransactionMut) {}),
+		captureArray(enc, "empty Array", "x", 200, func(_ *threadwave.Array, _ *threadwave.TransactionMut) {}),
 
-		captureArray(enc, "Array.Push single", "x", 201, func(a *ygo.Array, txn *ygo.TransactionMut) {
+		captureArray(enc, "Array.Push single", "x", 201, func(a *threadwave.Array, txn *threadwave.TransactionMut) {
 			a.Push(txn, "only")
 		}),
 
-		captureArray(enc, "Array.Push batch packed", "x", 202, func(a *ygo.Array, txn *ygo.TransactionMut) {
+		captureArray(enc, "Array.Push batch packed", "x", 202, func(a *threadwave.Array, txn *threadwave.TransactionMut) {
 			a.InsertRange(txn, 0, []any{"a", "b", "c", "d", "e"})
 		}),
 
-		captureArray(enc, "Array with various value types", "x", 203, func(a *ygo.Array, txn *ygo.TransactionMut) {
+		captureArray(enc, "Array with various value types", "x", 203, func(a *threadwave.Array, txn *threadwave.TransactionMut) {
 			a.InsertRange(txn, 0, []any{"s", int64(42), 3.14, true, false, nil})
 		}),
 
-		captureArray(enc, "Array insert in middle (split)", "x", 204, func(a *ygo.Array, txn *ygo.TransactionMut) {
+		captureArray(enc, "Array insert in middle (split)", "x", 204, func(a *threadwave.Array, txn *threadwave.TransactionMut) {
 			a.InsertRange(txn, 0, []any{"a", "b", "c", "d"})
 			a.Insert(txn, 2, "X")
 		}),
 
-		captureArray(enc, "Array delete range across packed run", "x", 206, func(a *ygo.Array, txn *ygo.TransactionMut) {
+		captureArray(enc, "Array delete range across packed run", "x", 206, func(a *threadwave.Array, txn *threadwave.TransactionMut) {
 			a.InsertRange(txn, 0, []any{"a", "b", "c", "d", "e", "f"})
 			a.Delete(txn, 2, 3)
 		}),
 
 		// --- Text ---
-		captureText(enc, "empty Text", "x", 300, func(_ *ygo.Text, _ *ygo.TransactionMut) {}),
+		captureText(enc, "empty Text", "x", 300, func(_ *threadwave.Text, _ *threadwave.TransactionMut) {}),
 
-		captureText(enc, "Text insert ASCII", "x", 301, func(t *ygo.Text, txn *ygo.TransactionMut) {
+		captureText(enc, "Text insert ASCII", "x", 301, func(t *threadwave.Text, txn *threadwave.TransactionMut) {
 			must(t.Insert(txn, 0, "hello"))
 		}),
 
-		captureText(enc, "Text two inserts", "x", 302, func(t *ygo.Text, txn *ygo.TransactionMut) {
+		captureText(enc, "Text two inserts", "x", 302, func(t *threadwave.Text, txn *threadwave.TransactionMut) {
 			must(t.Insert(txn, 0, "hello"))
 			must(t.Insert(txn, 5, " world"))
 		}),
 
-		captureText(enc, "Text Cyrillic (BMP)", "x", 306, func(t *ygo.Text, txn *ygo.TransactionMut) {
+		captureText(enc, "Text Cyrillic (BMP)", "x", 306, func(t *threadwave.Text, txn *threadwave.TransactionMut) {
 			must(t.Insert(txn, 0, "привет"))
 		}),
 
-		captureText(enc, "Text emoji (non-BMP surrogate pair)", "x", 307, func(t *ygo.Text, txn *ygo.TransactionMut) {
+		captureText(enc, "Text emoji (non-BMP surrogate pair)", "x", 307, func(t *threadwave.Text, txn *threadwave.TransactionMut) {
 			must(t.Insert(txn, 0, "a😀b"))
 		}),
 
-		captureText(enc, "Text delete range", "x", 305, func(t *ygo.Text, txn *ygo.TransactionMut) {
+		captureText(enc, "Text delete range", "x", 305, func(t *threadwave.Text, txn *threadwave.TransactionMut) {
 			must(t.Insert(txn, 0, "hello world"))
 			must(t.Delete(txn, 5, 6))
 		}),
 
 		// --- XmlFragment ---
-		captureXml(enc, "XmlFragment empty", "frag", 400, func(_ *ygo.XmlFragment, _ *ygo.TransactionMut) {}),
+		captureXml(enc, "XmlFragment empty", "frag", 400, func(_ *threadwave.XmlFragment, _ *threadwave.TransactionMut) {}),
 
-		captureXml(enc, "XmlFragment with two elements", "frag", 401, func(f *ygo.XmlFragment, txn *ygo.TransactionMut) {
+		captureXml(enc, "XmlFragment with two elements", "frag", 401, func(f *threadwave.XmlFragment, txn *threadwave.TransactionMut) {
 			f.InsertXmlElement(txn, 0, "div")
 			f.InsertXmlElement(txn, 1, "span")
 		}),
 
-		captureXml(enc, "XmlFragment with element + text child", "frag", 402, func(f *ygo.XmlFragment, txn *ygo.TransactionMut) {
+		captureXml(enc, "XmlFragment with element + text child", "frag", 402, func(f *threadwave.XmlFragment, txn *threadwave.TransactionMut) {
 			f.InsertXmlElement(txn, 0, "p")
 			xt := f.InsertXmlText(txn, 1)
 			must(xt.Insert(txn, 0, "hello"))
@@ -300,17 +300,17 @@ func captureAll(enc encoder) []scenario {
 		// --- Edge scenarios (mirror V1/V2 forward set so reverse counts cross 100 too) ---
 		captureMap(enc, "Map empty-string key", "x", 109,
 			[]string{"", "nonempty"},
-			func(m *ygo.Map, txn *ygo.TransactionMut) {
+			func(m *threadwave.Map, txn *threadwave.TransactionMut) {
 				m.Set(txn, "", "empty-key-value")
 				m.Set(txn, "nonempty", "for contrast")
 			}),
 
-		captureArray(enc, "Array delete entire range", "x", 209, func(a *ygo.Array, txn *ygo.TransactionMut) {
+		captureArray(enc, "Array delete entire range", "x", 209, func(a *threadwave.Array, txn *threadwave.TransactionMut) {
 			a.InsertRange(txn, 0, []any{"a", "b", "c"})
 			a.Delete(txn, 0, 3)
 		}),
 
-		captureText(enc, "Text non-BMP combining + ZWJ family", "x", 310, func(t *ygo.Text, txn *ygo.TransactionMut) {
+		captureText(enc, "Text non-BMP combining + ZWJ family", "x", 310, func(t *threadwave.Text, txn *threadwave.TransactionMut) {
 			must(t.Insert(txn, 0, "é🧑‍💻"))
 		}),
 	}
@@ -348,13 +348,13 @@ func main() {
 	v1 := captureAll(encV1)
 	v2 := captureAll(encV2)
 
-	if err := writeFixture(v1Path, "ygo (V1)", v1); err != nil {
+	if err := writeFixture(v1Path, "threadwave (V1)", v1); err != nil {
 		fmt.Fprintln(os.Stderr, "write V1:", err)
 		os.Exit(1)
 	}
 	fmt.Printf("wrote %d V1 scenarios to %s\n", len(v1), v1Path)
 
-	if err := writeFixture(v2Path, "ygo (V2)", v2); err != nil {
+	if err := writeFixture(v2Path, "threadwave (V2)", v2); err != nil {
 		fmt.Fprintln(os.Stderr, "write V2:", err)
 		os.Exit(1)
 	}

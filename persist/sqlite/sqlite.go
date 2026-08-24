@@ -36,7 +36,7 @@ import (
 	// modernc.org/sqlite registers itself as the "sqlite" driver.
 	_ "modernc.org/sqlite"
 
-	"github.com/Deln0r/ygo/persist"
+	"github.com/Arnavsharma2/threadwave/persist"
 )
 
 // memoryDSN is the dsn modernc.org/sqlite recognises for ephemeral
@@ -56,12 +56,12 @@ const memoryDSN = ":memory:"
 // has its own implicit index; the composite form lets GetUpdates
 // satisfy WHERE doc_name = ? ORDER BY id ASC without a separate sort.
 const schemaSQL = `
-CREATE TABLE IF NOT EXISTS ygo_updates (
+CREATE TABLE IF NOT EXISTS threadwave_updates (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     doc_name TEXT NOT NULL,
     update_blob BLOB NOT NULL
 );
-CREATE INDEX IF NOT EXISTS idx_ygo_updates_doc_name ON ygo_updates(doc_name, id);
+CREATE INDEX IF NOT EXISTS idx_threadwave_updates_doc_name ON threadwave_updates(doc_name, id);
 `
 
 // Store implements persist.Store on top of a SQLite database.
@@ -146,7 +146,7 @@ func (s *Store) StoreUpdate(ctx context.Context, docName string, update []byte) 
 		return persist.ErrEmptyUpdate
 	}
 	_, err := s.db.ExecContext(ctx,
-		`INSERT INTO ygo_updates (doc_name, update_blob) VALUES (?, ?)`,
+		`INSERT INTO threadwave_updates (doc_name, update_blob) VALUES (?, ?)`,
 		docName, update)
 	if err != nil {
 		return fmt.Errorf("sqlite.StoreUpdate(%q): %w", docName, err)
@@ -159,7 +159,7 @@ func (s *Store) StoreUpdate(ctx context.Context, docName string, update []byte) 
 // an unknown document.
 func (s *Store) GetUpdates(ctx context.Context, docName string) ([][]byte, error) {
 	rows, err := s.db.QueryContext(ctx,
-		`SELECT update_blob FROM ygo_updates WHERE doc_name = ? ORDER BY id ASC`,
+		`SELECT update_blob FROM threadwave_updates WHERE doc_name = ? ORDER BY id ASC`,
 		docName)
 	if err != nil {
 		return nil, fmt.Errorf("sqlite.GetUpdates(%q): %w", docName, err)
@@ -228,7 +228,7 @@ func (s *Store) Flush(ctx context.Context, docName string) error {
 	}()
 
 	rows, err := conn.QueryContext(ctx,
-		`SELECT update_blob FROM ygo_updates WHERE doc_name = ? ORDER BY id ASC`,
+		`SELECT update_blob FROM threadwave_updates WHERE doc_name = ? ORDER BY id ASC`,
 		docName)
 	if err != nil {
 		return fmt.Errorf("sqlite.Flush(%q) read: %w", docName, err)
@@ -266,11 +266,11 @@ func (s *Store) Flush(ctx context.Context, docName string) error {
 	}
 
 	if _, err := conn.ExecContext(ctx,
-		`DELETE FROM ygo_updates WHERE doc_name = ?`, docName); err != nil {
+		`DELETE FROM threadwave_updates WHERE doc_name = ?`, docName); err != nil {
 		return fmt.Errorf("sqlite.Flush(%q) delete: %w", docName, err)
 	}
 	if _, err := conn.ExecContext(ctx,
-		`INSERT INTO ygo_updates (doc_name, update_blob) VALUES (?, ?)`,
+		`INSERT INTO threadwave_updates (doc_name, update_blob) VALUES (?, ?)`,
 		docName, snapshot); err != nil {
 		return fmt.Errorf("sqlite.Flush(%q) insert: %w", docName, err)
 	}
@@ -285,7 +285,7 @@ func (s *Store) Flush(ctx context.Context, docName string) error {
 func (s *Store) DocumentExists(ctx context.Context, docName string) (bool, error) {
 	var n int
 	row := s.db.QueryRowContext(ctx,
-		`SELECT 1 FROM ygo_updates WHERE doc_name = ? LIMIT 1`, docName)
+		`SELECT 1 FROM threadwave_updates WHERE doc_name = ? LIMIT 1`, docName)
 	err := row.Scan(&n)
 	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
@@ -302,7 +302,7 @@ func (s *Store) DocumentExists(ctx context.Context, docName string) (bool, error
 // tests stable.
 func (s *Store) ListDocuments(ctx context.Context) ([]string, error) {
 	rows, err := s.db.QueryContext(ctx,
-		`SELECT DISTINCT doc_name FROM ygo_updates ORDER BY doc_name ASC`)
+		`SELECT DISTINCT doc_name FROM threadwave_updates ORDER BY doc_name ASC`)
 	if err != nil {
 		return nil, fmt.Errorf("sqlite.ListDocuments: %w", err)
 	}
@@ -325,7 +325,7 @@ func (s *Store) ListDocuments(ctx context.Context) ([]string, error) {
 // ClearDocument removes every update for docName. Idempotent.
 func (s *Store) ClearDocument(ctx context.Context, docName string) error {
 	_, err := s.db.ExecContext(ctx,
-		`DELETE FROM ygo_updates WHERE doc_name = ?`, docName)
+		`DELETE FROM threadwave_updates WHERE doc_name = ?`, docName)
 	if err != nil {
 		return fmt.Errorf("sqlite.ClearDocument(%q): %w", docName, err)
 	}

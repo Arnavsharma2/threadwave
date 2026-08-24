@@ -5,7 +5,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Deln0r/ygo/gomobile"
+	"github.com/Arnavsharma2/threadwave/gomobile"
 )
 
 // textRec implements gomobile.TextChangeListener, accumulating every

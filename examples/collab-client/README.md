@@ -1,8 +1,8 @@
 # collab-client example
 
-A runnable example of the ygo **Go-native sync client**
-([`client`](https://pkg.go.dev/github.com/Deln0r/ygo/client)): it connects
-to a ygo (or any y-websocket) server, observes a shared array, appends one
+A runnable example of the threadwave **Go-native sync client**
+([`client`](https://pkg.go.dev/github.com/Arnavsharma2/threadwave/client)): it connects
+to a threadwave (or any y-websocket) server, observes a shared array, appends one
 entry, and logs every change — local and remote — as the document
 converges. A Go client that speaks the y-websocket protocol is a
 distinguishing feature; most CRDT stacks only ship a browser client.
@@ -21,7 +21,7 @@ Each client appends its `-name` to the shared `items` array and logs the
 others' entries as they arrive. It also speaks to the public demo:
 
 ```sh
-go run ./examples/collab-client -url wss://ygo.deln0r.com/ws -doc my-room -name alice
+go run ./examples/collab-client -url wss://threadwave.deln0r.com/ws -doc my-room -name alice
 ```
 
 ## What it demonstrates
@@ -29,7 +29,7 @@ go run ./examples/collab-client -url wss://ygo.deln0r.com/ws -doc my-room -name 
 - `client.New` + `Connect` / `Close`: a reconnecting sync session for one
   document, safe for concurrent use.
 - `OnSynced` / `OnError`: handshake and connection-error callbacks.
-- Editing through the public API on `Client.Doc()` (`ygo.NewArray` +
+- Editing through the public API on `Client.Doc()` (`threadwave.NewArray` +
   `WriteTxn` / `Push` / `Commit`), which syncs to the server and peers.
 - `Array.Observe`: a change feed that fires for both local edits and
   applied remote updates.

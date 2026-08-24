@@ -209,7 +209,7 @@
 ### Forward-dependency stubs are empty types
 
 - **Where:** `internal/block/stubs.go` (`Branch`, `Move`).
-- **What:** placeholder `type X struct{}` definitions so the block package compiles. (`Doc` was previously here; now lives in `internal/doc`. The block-layer `Doc` stub is now only referenced by `block.Content.Doc` / `block.Content.ParentDoc` for `KindDoc` payloads, which is read-only data the block layer never inspects.)
+- **What:** placeholder `type X struct{}` definitions so the block package compiles. (`Doc` was previously here; now lives in `internal/doc`. The block-layer `Doc` stub is now only referenced by `block.Content.Doc` / `block.Content.ParentDoc` for `KindDoc` pathreadloads, which is read-only data the block layer never inspects.)
 - **Why deferred:** by design — the block layer references these only through pointers and never inspects their internals. Real definitions land with their owning layers.
 - **When to address:** `Branch` with the types layer; `Move` post-MVP per ROADMAP. The `block.Doc` stub stays even after `internal/doc.Doc` lands, because the block layer can't depend on the doc layer (would cycle); we'll bridge them through an interface when sub-document support arrives.
 
@@ -217,10 +217,10 @@
 
 ### gomobile bind subset (iOS resolved; Android NDK pending)
 
-- **Was:** the marquee "pure-Go = gomobile bind works" claim was structurally correct (no CGO) but operationally untested; an adopter running `gomobile bind github.com/Deln0r/ygo` would find most of the rich API silently filtered out (`any` / `map` / callbacks / non-byte slices).
+- **Was:** the marquee "pure-Go = gomobile bind works" claim was structurally correct (no CGO) but operationally untested; an adopter running `gomobile bind github.com/Arnavsharma2/threadwave` would find most of the rich API silently filtered out (`any` / `map` / callbacks / non-byte slices).
 - **Resolved by (Go-side):** `gomobile/` package exposes the bindable subset only — `Doc` + `Awareness` wrappers with bytes-in/bytes-out methods (NewDoc / NewDocWithClientID / ApplyUpdate / EncodeStateAsUpdate / EncodeStateVector / EncodeDiff / HasPending / MissingSV / NewAwareness / SetLocalState / LocalState / RemoveLocalState / EncodeAll / Apply). 6 tests prove the bytes-only round-trip. Package builds clean with `CGO_ENABLED=0`.
-- **Resolved by (iOS toolchain — May 2026):** `gomobile bind -target=ios,iossimulator` produces a valid `Ygo.xcframework` end-to-end on Xcode 16 + Go 1.26 / macOS 26 Apple Silicon. Both slices are real Apple frameworks: `ios-arm64/Ygo.framework` (6.6 MB, real-device) + `ios-arm64_x86_64-simulator/Ygo.framework` (13 MB universal). Auto-generated Objective-C headers (`Ygo.h`, `Gomobile.objc.h`, `Universe.objc.h`, `ref.h`) preserve all the Go doc-comments on every method. Adopters drop the xcframework into Xcode, import via the generated Swift bridge.
-- **Resolved by (Android toolchain — May 2026):** `gomobile bind -target=android -androidapi 21` produces a valid 8.4 MB `.aar` containing native JNI libraries for all four standard Android architectures (`arm64-v8a` 3.8 MB / `armeabi-v7a` 3.7 MB / `x86_64` 4.1 MB / `x86` 3.7 MB) plus a `classes.jar` exposing `gomobile.Doc`, `gomobile.Awareness`, and `gomobile.Gomobile` package-facade Java classes. Drop into Android Studio's `app/libs/`, add `implementation files('libs/ygo.aar')` to `build.gradle`, `import gomobile.Doc;`. Verified on NDK 27.0.12077973 + Android SDK platform-21 + Android Studio Ladybug bundled JBR.
+- **Resolved by (iOS toolchain — May 2026):** `gomobile bind -target=ios,iossimulator` produces a valid `Threadwave.xcframework` end-to-end on Xcode 16 + Go 1.26 / macOS 26 Apple Silicon. Both slices are real Apple frameworks: `ios-arm64/Threadwave.framework` (6.6 MB, real-device) + `ios-arm64_x86_64-simulator/Threadwave.framework` (13 MB universal). Auto-generated Objective-C headers (`Threadwave.h`, `Gomobile.objc.h`, `Universe.objc.h`, `ref.h`) preserve all the Go doc-comments on every method. Adopters drop the xcframework into Xcode, import via the generated Swift bridge.
+- **Resolved by (Android toolchain — May 2026):** `gomobile bind -target=android -androidapi 21` produces a valid 8.4 MB `.aar` containing native JNI libraries for all four standard Android architectures (`arm64-v8a` 3.8 MB / `armeabi-v7a` 3.7 MB / `x86_64` 4.1 MB / `x86` 3.7 MB) plus a `classes.jar` exposing `gomobile.Doc`, `gomobile.Awareness`, and `gomobile.Gomobile` package-facade Java classes. Drop into Android Studio's `app/libs/`, add `implementation files('libs/threadwave.aar')` to `build.gradle`, `import gomobile.Doc;`. Verified on NDK 27.0.12077973 + Android SDK platform-21 + Android Studio Ladybug bundled JBR.
 - **Both toolchain notes** — exact commands in [gomobile/README.md](/gomobile/README.md). `gomobile bind` needs `golang.org/x/mobile/bind` resolvable in the module graph; main `go.mod` deliberately does not carry the dep, so non-mobile adopters pull nothing extra, and adopters `go get golang.org/x/mobile/bind` in their fresh checkout before running bind. (Until 2026-08-13 the stated reason was that the dep would push the `go` directive past the then-1.22 floor; that floor is now 1.25, so the constraint is dependency hygiene rather than a version conflict.) Android specifically needs `-androidapi 21` because NDK 27 dropped support for API < 21; gomobile's default 16 fails otherwise.
 - **Remaining gap (small):** **Typed mobile shared-type API** — if a real mobile adopter wants `Map.SetString` / `Array.PushStringSlice` etc., the gomobile package can be extended with monomorphic typed variants (~200-400 LOC depending on how many type combinations matter). Bytes-only API is sufficient for any adopter willing to do their own protocol-buffer / JSON serialization at the boundary.
 - **When to address:** when a real mobile adopter brings a concrete typed-API use case.
@@ -233,7 +233,7 @@
 - **Resolved by:**
   - `internal/sync/protocol.go` adds AuthSubType constants (PermissionDenied=0, Authenticated=1, Token=2) and `CloseStatusUnauthorized = 4401`.
   - `internal/sync/framing.go` adds encoders + decoders for all 5 types. DecodeEnvelope populates Frame.AuthSub for Auth messages.
-  - `internal/sync/handler.go` adds `OnAuthenticate(docName, token) error` and `OnStateless(docName, payload)` hooks plus `AuthFailed` flag. Auth handler decodes Token sub-type, invokes the callback; on deny sends AuthPermissionDenied + Close and sets AuthFailed. Stateless invokes the callback (no reply). BroadcastStateless also fans out via Broadcast. Close and SyncStatus accepted silently.
+  - `internal/sync/handler.go` adds `OnAuthenticate(docName, token) error` and `OnStateless(docName, pathreadload)` hooks plus `AuthFailed` flag. Auth handler decodes Token sub-type, invokes the callback; on deny sends AuthPermissionDenied + Close and sets AuthFailed. Stateless invokes the callback (no reply). BroadcastStateless also fans out via Broadcast. Close and SyncStatus accepted silently.
   - `server/server.go` exposes `Options.OnAuthenticate` and `Options.OnStateless`. The readLoop checks `AuthFailed` after each HandleFrame and tears down the WS with `CloseStatusUnauthorized` (4401) when set.
   - 7 unit tests in `internal/sync/hocuspocus_test.go` plus 3 E2E tests in `server/server_test.go` (deny → 4401 close, accept → Authenticated reply, broadcast-stateless fans out across two clients).
 - **Connection-level read-only (resolved):** `server.Options.ReadOnly func(docName, r) bool` marks a connection read-only; the sync handler then drops inbound document mutations (SyncStep2 / SyncUpdate: no apply, no broadcast) while still serving reads (SyncStep1) and still accepting awareness. Enforced in `internal/sync/handler.go` via `Conn.ReadOnly`.
@@ -242,7 +242,7 @@
 ### Cross-language y-websocket / Hocuspocus fixture (resolved)
 
 - **Was:** byte-level wire format asserted only via hand-built fixtures in `framing_test.go` and pure-Go round-trip in `handler_test.go`.
-- **Resolved by:** `testdata/gen/gen-sync.mjs` captures 6 envelope scenarios (SyncStep1 from empty + non-empty doc, SyncStep2 with array state, SyncUpdate incremental text insert, Awareness frame, QueryAwareness handshake) using y-protocols/sync + Hocuspocus outer-tag layout. `internal/sync/fixtures_test.go` decodes each via DecodeEnvelope and verifies Type / SyncSub / Payload match. Reverse-encode test for QueryAwareness (only deterministic-payload type) confirms byte-equality.
+- **Resolved by:** `testdata/gen/gen-sync.mjs` captures 6 envelope scenarios (SyncStep1 from empty + non-empty doc, SyncStep2 with array state, SyncUpdate incremental text insert, Awareness frame, QueryAwareness handshake) using y-protocols/sync + Hocuspocus outer-tag layout. `internal/sync/fixtures_test.go` decodes each via DecodeEnvelope and verifies Type / SyncSub / Pathreadload match. Reverse-encode test for QueryAwareness (only deterministic-pathreadload type) confirms byte-equality.
 
 ### Broadcast fan-out is O(N) per update with no rate limiting
 
@@ -259,7 +259,7 @@
 
 ### V2 update encoding (resolved)
 
-- **Where:** `internal/encoding/{encoder_v2.go,decoder_v2.go,update_v2.go}`. Public `ygo.{EncodeStateAsUpdateV2,EncodeDiffV2,ApplyUpdateV2}`.
+- **Where:** `internal/encoding/{encoder_v2.go,decoder_v2.go,update_v2.go}`. Public `threadwave.{EncodeStateAsUpdateV2,EncodeDiffV2,ApplyUpdateV2}`.
 - **Resolved by:** 4 commits over 16 May 2026.
   1. `internal/lib0/rle.go` — RLE primitives (Rle / UintOptRle / IntDiffOptRle / StringEncoder) + 16 unit tests + 16 JS lib0 cross-language fixtures (`7634a53`).
   2. `internal/encoding/encoder_v2.go` + `decoder_v2.go` — column buffer plumbing, 15 round-trip tests (`9104ab8`).
@@ -284,14 +284,14 @@
 ### Resolved: server-driven timeout sweep + presence DoS hardening
 
 - **Was:** `SweepOutdated` was exposed on `internal/awareness/awareness.go` but no goroutine drove it. The awareness type follows yrs (the embedder owns the lifecycle); the y-protocols JS impl runs an internal `setInterval` every `outdatedTimeout/10`. With no driver, a long-lived room accumulated stale presence entries and tombstone keys without bound, and `Apply` accepted unlimited fabricated clientIDs — both memory-exhaustion vectors against an exposed WebSocket server.
-- **Resolved by:** the awareness type stays passive (no surprise lifecycle), but the `server/` layer now drives eviction. `server/awareness_sweep.go` runs a ticker at `AwarenessTimeout/10` (floored 1s, matching the JS cadence) that, per live document, `SweepOutdated`s silent clients, broadcasts the removals, then `PurgeTombstones` (a new GC that deletes tombstone keys older than `2*timeout`, reclaiming map slots). Three new caps close the DoS vectors: `decodeUpdate` rejects an entry count above `MaxUpdateEntries` (65536) **before** the count-driven pre-allocation (the length-prefix amplification attack) and a per-entry payload above `MaxStatePayloadBytes` (64 KiB); `Awareness.SetMaxClients(n)` bounds the distinct clientIDs one room tracks (server default 4096, `Options.MaxAwarenessClients`), and `handleAwareness` re-broadcasts only the entries the cap actually accepted (re-encoded from state), so a flood neither bloats the server map nor propagates to cap-less browser peers. Lifecycle is clean: the sweep goroutine starts in `server.New` and is joined in `server.Close`.
+- **Resolved by:** the awareness type stays passive (no surprise lifecycle), but the `server/` layer now drives eviction. `server/awareness_sweep.go` runs a ticker at `AwarenessTimeout/10` (floored 1s, matching the JS cadence) that, per live document, `SweepOutdated`s silent clients, broadcasts the removals, then `PurgeTombstones` (a new GC that deletes tombstone keys older than `2*timeout`, reclaiming map slots). Three new caps close the DoS vectors: `decodeUpdate` rejects an entry count above `MaxUpdateEntries` (65536) **before** the count-driven pre-allocation (the length-prefix amplification attack) and a per-entry pathreadload above `MaxStatePathreadloadBytes` (64 KiB); `Awareness.SetMaxClients(n)` bounds the distinct clientIDs one room tracks (server default 4096, `Options.MaxAwarenessClients`), and `handleAwareness` re-broadcasts only the entries the cap actually accepted (re-encoded from state), so a flood neither bloats the server map nor propagates to cap-less browser peers. Lifecycle is clean: the sweep goroutine starts in `server.New` and is joined in `server.Close`.
 - **Remaining:** library callers using `internal/awareness` directly still wrap `SweepOutdated`/`PurgeTombstones` in their own ticker (by design); only the bundled server auto-drives it.
 
 ## XML types (mostly resolved)
 
 ### Resolved: XmlFragment / XmlElement / XmlText shipped
 
-- **Was:** missing XML wrapper layer; ProseMirror / Tiptap / BlockNote unusable as JS clients against a ygo server.
+- **Was:** missing XML wrapper layer; ProseMirror / Tiptap / BlockNote unusable as JS clients against a threadwave server.
 - **Resolved by:** `internal/types/xml.go` ships `XmlFragment`, `XmlElement`, `XmlText` wrappers. XmlElement carries nodeName + attributes (Map-like via `branch.Map`) + positional children (Array-like via `branch.Start`); XmlText embeds the regular Text wrapper to inherit all rich-text methods. ToString renderers produce HTML-like output with sorted attribute keys. 11 tests cover Element/Attribute/RemoveAttribute, nested DOM round-trip, self-closing render for empty elements, rich-text inside XmlText, wire round-trip preserves structure, cross-client structural-edit convergence, Range over children. The wire-format machinery (`ContentType` with optional nodeName) was already in place from the nested-type commit.
 - **Remaining:** `XmlHook` (legacy JS Yjs embed type carrying an arbitrary opaque value) is deferred — yrs marks it as legacy too. No adopter has asked.
 
@@ -323,7 +323,7 @@
 - **Where:** `go.mod`.
 - **Was:** to keep `go 1.22` minimum compat we pinned `modernc.org/sqlite v1.29.10` plus its transitive `modernc.org/libc@v1.49.3`, `modernc.org/memory@v1.8.0`, `modernc.org/gc/v3@v3.0.0-20240801135723-a856999a2e4a`, `golang.org/x/sys@v0.30.0`, and told dependabot to ignore newer versions of sqlite and `coder/websocket`. By August 2026 that meant shipping a SQLite build from May 2024 (27 months old) in the layer that stores adopters' documents, to stay compatible with a Go release upstream no longer supports.
 - **Resolved by:** raising the module floor to `go 1.25` — the older of the two Go releases upstream still supports — and dropping every pin. `go mod tidy` then picked `modernc.org/sqlite v1.56.0`, `coder/websocket v1.8.15`, `libc v1.74.4`, `memory v1.11.0`, `x/sys v0.47.0`, and removed `gc/v3`, `golang-lru/v2`, `strutil` and `token` from the graph entirely. The dependabot ignore rules are gone, so these track upstream again. Verified across the full suite under `-race`, with the persistence layer additionally run at `-count=10` (WAL and busy-timeout still applied from our DSN; both `BEGIN IMMEDIATE` regression tests still pass).
-- **Cost of the fix:** the CI matrix retired `1.22`/`1.23`/`1.24` and is now `1.25`/`1.26`; adopters on those older toolchains stay on ygo v1.15.0.
+- **Cost of the fix:** the CI matrix retired `1.22`/`1.23`/`1.24` and is now `1.25`/`1.26`; adopters on those older toolchains stay on threadwave v1.15.0.
 
 ## Doc / Transaction layer
 
@@ -395,15 +395,15 @@
 ### B3.2 (Many clients set Object in shared Map) currently skipped
 
 - **Where:** `benchmarks/b3_test.go` `BenchmarkB3_2_ManyClientsSetObject`.
-- **What:** the upstream B3.2 spec writes a JSON `{a:1, b:"x"}` object as the Map value. Our `EncodeAny` does not support `map[string]any` payloads (panics with "unsupported value type"). The same gap blocks any Any TLV containing arrays / objects / buffers / bigint / float32.
+- **What:** the upstream B3.2 spec writes a JSON `{a:1, b:"x"}` object as the Map value. Our `EncodeAny` does not support `map[string]any` pathreadloads (panics with "unsupported value type"). The same gap blocks any Any TLV containing arrays / objects / buffers / bigint / float32.
 - **Why deferred:** Any TLV was scoped to scalars in the MVP — see "Any type is a placeholder" entry above. Closing this unblocks B3.2 (and unlocks objects-as-values for adopters using Map for JSON-shaped configuration).
 - **When to address:** with the broader Any TLV variant work. Implementation: extend `internal/encoding/any_codec.go` to handle the upstream lib0 Any tag set (tags 116-127 covering array / object / undefined / float32 / bigint / buffer).
 
 ### Cross-implementation benchmark harness (vs yrs / yjs, automated)
 
 - **Where:** missing; tracked here so DESIGN.md's "within 2× of yrs" target stays explicit.
-- **What:** [BENCHMARKS.md](/BENCHMARKS.md) "Comparison with yjs / ywasm" section now informally compares ygo's measured numbers against `dmonad/crdt-benchmarks` published yjs/ywasm numbers, with explicit hardware/runtime caveats. That gets us to "qualitatively comparable" but not "definitively prove within 2× under identical conditions". A proper harness would run ygo + native yrs (not ywasm) + yjs through a single comparison runner on the same hardware and produce a comparison table.
-- **Why deferred:** upstream `dmonad/crdt-benchmarks` JS runner shells out to native modules; integrating ygo would need a Go-side adapter producing the same JSON output the JS aggregator consumes. Native yrs needs the rust toolchain present; CI overhead non-trivial. Marginal value over the informal comparison.
+- **What:** [BENCHMARKS.md](/BENCHMARKS.md) "Comparison with yjs / ywasm" section now informally compares threadwave's measured numbers against `dmonad/crdt-benchmarks` published yjs/ywasm numbers, with explicit hardware/runtime caveats. That gets us to "qualitatively comparable" but not "definitively prove within 2× under identical conditions". A proper harness would run threadwave + native yrs (not ywasm) + yjs through a single comparison runner on the same hardware and produce a comparison table.
+- **Why deferred:** upstream `dmonad/crdt-benchmarks` JS runner shells out to native modules; integrating threadwave would need a Go-side adapter producing the same JSON output the JS aggregator consumes. Native yrs needs the rust toolchain present; CI overhead non-trivial. Marginal value over the informal comparison.
 - **When to address:** opportunistic; current absolute numbers + qualitative comparison are sufficient for grant applications and project positioning. Re-prioritise if a reviewer / adopter specifically asks "show me side-by-side on identical hardware".
 
 ## Client / mobile / server layers (added 2026-06-12 sprint)
@@ -440,7 +440,7 @@
 
 - **Where:** `server/versioning.go` (dirty-set sweep).
 - **What:** auto-versioning marks a document dirty on each persisted update from THIS server process, then versions dirty documents on a timer. A document written by a different process sharing the same database (multi-node / external writer) is not observed and would be under-versioned.
-- **Why deferred:** the single-binary deployment yserve targets is single-writer by design (SQLite file lock). Multi-writer versioning needs a storage-level change feed.
+- **Why deferred:** the single-binary deployment threadserve targets is single-writer by design (SQLite file lock). Multi-writer versioning needs a storage-level change feed.
 - **When to address:** when a clustered / multi-writer deployment story lands (it would also need the Redis-relay path we do not yet have).
 
 ## Open questions captured but not resolved

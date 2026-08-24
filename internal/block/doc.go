@@ -9,6 +9,6 @@
 // directive of this package; field semantics mirror y-crdt/yrs (see
 // yrs/src/block.rs as the executable reference).
 //
-// This package is internal: callers should use the public ygo, doc, and
+// This package is internal: callers should use the public threadwave, doc, and
 // types packages instead.
 package block

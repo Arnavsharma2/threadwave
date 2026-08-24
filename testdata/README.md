@@ -1,7 +1,7 @@
 # testdata
 
 Captured fixtures from the JavaScript Yjs and lib0 reference implementations.
-ygo's tests assert byte-for-byte compatibility against these.
+threadwave's tests assert byte-for-byte compatibility against these.
 
 ## Layout
 

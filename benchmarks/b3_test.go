@@ -4,7 +4,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/Deln0r/ygo"
+	"github.com/Arnavsharma2/threadwave"
 )
 
 // buildManyClientsMap returns a Doc into which N3 client docs have
@@ -15,17 +15,17 @@ import (
 //
 // Per-client docs have ClientID = 1000+i to keep them stable for
 // benchmark determinism.
-func buildManyClientsMap(makeValue func(i int) any) *ygo.Doc {
-	merger := ygo.NewDocWithOptions(ygo.Options{ClientID: 1})
-	_ = ygo.NewMap(merger, "m")
+func buildManyClientsMap(makeValue func(i int) any) *threadwave.Doc {
+	merger := threadwave.NewDocWithOptions(threadwave.Options{ClientID: 1})
+	_ = threadwave.NewMap(merger, "m")
 
 	for i := 0; i < N3; i++ {
-		c := ygo.NewDocWithOptions(ygo.Options{ClientID: uint64(1000 + i)})
-		cm := ygo.NewMap(c, "m")
+		c := threadwave.NewDocWithOptions(threadwave.Options{ClientID: uint64(1000 + i)})
+		cm := threadwave.NewMap(c, "m")
 		txn := c.WriteTxn()
 		cm.Set(txn, "k"+itoa(i), makeValue(i))
 		txn.Commit()
-		if err := ygo.ApplyUpdate(merger, ygo.EncodeStateAsUpdate(c)); err != nil {
+		if err := threadwave.ApplyUpdate(merger, threadwave.EncodeStateAsUpdate(c)); err != nil {
 			panic(err)
 		}
 	}
@@ -35,7 +35,7 @@ func buildManyClientsMap(makeValue func(i int) any) *ygo.Doc {
 // B3.1 — N3=489 clients concurrently set a numeric value under
 // distinct keys in a shared Map.
 func BenchmarkB3_1_ManyClientsSetNumber(b *testing.B) {
-	build := func() *ygo.Doc {
+	build := func() *threadwave.Doc {
 		return buildManyClientsMap(func(i int) any { return int64(i) })
 	}
 
@@ -55,7 +55,7 @@ func BenchmarkB3_1_ManyClientsSetNumber(b *testing.B) {
 // variant (tag 118) — keys + recursive Any values per element.
 func BenchmarkB3_2_ManyClientsSetObject(b *testing.B) {
 	val := map[string]any{"a": int64(1), "b": "x"}
-	build := func() *ygo.Doc {
+	build := func() *threadwave.Doc {
 		return buildManyClientsMap(func(_ int) any { return val })
 	}
 
@@ -72,7 +72,7 @@ func BenchmarkB3_2_ManyClientsSetObject(b *testing.B) {
 
 // B3.3 — N3 clients each set a short string value.
 func BenchmarkB3_3_ManyClientsSetString(b *testing.B) {
-	build := func() *ygo.Doc {
+	build := func() *threadwave.Doc {
 		return buildManyClientsMap(func(i int) any { return "val-" + itoa(i) })
 	}
 
@@ -95,18 +95,18 @@ func BenchmarkB3_3_ManyClientsSetString(b *testing.B) {
 // upstream B3.4 shape (which is also sequential apply for
 // reproducibility).
 func BenchmarkB3_4_ManyClientsInsertArray(b *testing.B) {
-	build := func() *ygo.Doc {
+	build := func() *threadwave.Doc {
 		r := rand.New(rand.NewSource(34))
-		merger := ygo.NewDocWithOptions(ygo.Options{ClientID: 1})
-		_ = ygo.NewArray(merger, "a")
+		merger := threadwave.NewDocWithOptions(threadwave.Options{ClientID: 1})
+		_ = threadwave.NewArray(merger, "a")
 
 		for i := 0; i < N3; i++ {
-			c := ygo.NewDocWithOptions(ygo.Options{ClientID: uint64(1000 + i)})
-			ca := ygo.NewArray(c, "a")
+			c := threadwave.NewDocWithOptions(threadwave.Options{ClientID: uint64(1000 + i)})
+			ca := threadwave.NewArray(c, "a")
 			// Pull current state into the client so its insertion
 			// index makes sense against the latest length.
 			if i > 0 {
-				if err := ygo.ApplyUpdate(c, ygo.EncodeStateAsUpdate(merger)); err != nil {
+				if err := threadwave.ApplyUpdate(c, threadwave.EncodeStateAsUpdate(merger)); err != nil {
 					panic(err)
 				}
 			}
@@ -118,7 +118,7 @@ func BenchmarkB3_4_ManyClientsInsertArray(b *testing.B) {
 			txn := c.WriteTxn()
 			ca.Insert(txn, idx, "x")
 			txn.Commit()
-			if err := ygo.ApplyUpdate(merger, ygo.EncodeStateAsUpdate(c)); err != nil {
+			if err := threadwave.ApplyUpdate(merger, threadwave.EncodeStateAsUpdate(c)); err != nil {
 				panic(err)
 			}
 		}

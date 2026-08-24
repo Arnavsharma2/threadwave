@@ -308,7 +308,7 @@ All three EntryChange variants exist (`mod.rs:794-805`). For the first port comm
 ### File layout
 
 - New package `internal/types` with `internal/types/map.go` and `internal/types/map_test.go`. Future siblings: `array.go`, `text.go`, `xmlfragment.go`.
-- Public re-export from a top-level `ygo` package once we wire the user-facing API; for now `internal/types.Map` is fine — tests in this commit live in-package.
+- Public re-export from a top-level `threadwave` package once we wire the user-facing API; for now `internal/types.Map` is fine — tests in this commit live in-package.
 
 ### Map struct
 
@@ -449,7 +449,7 @@ func (m *Map) Len(_ doc.ReadTxn) int {
 
 | Feature | Why defer | Unblocking condition |
 |---|---|---|
-| Observers (`Observable for MapRef`, `MapEvent`, `event_keys` classification) | Requires Branch.observers + Branch.deep_observers fields, observer registry, transaction-end notification phase. Not on Day 14 critical path. | After Doc commit hooks land; before we ship the public `ygo` package surface. |
+| Observers (`Observable for MapRef`, `MapEvent`, `event_keys` classification) | Requires Branch.observers + Branch.deep_observers fields, observer registry, transaction-end notification phase. Not on Day 14 critical path. | After Doc commit hooks land; before we ship the public `threadwave` package surface. |
 | `MapPrelim` recursive nested-type construction | Requires `Prelim` trait + `In` enum. The two-phase `into_content`/`integrate` pattern is straightforward but adds API surface we have not validated yet. | When we add `*Array` (so we have at least two Prelim implementors). |
 | Full `Out`/`In` enum coverage (Doc subdocs, XmlElement/Fragment/Text, weak links, structured Any) | None of these have been ported as Content variants in `internal/block` yet. | One commit per shared type after Map lands. |
 | `try_update` (`map.rs:238-260`) | Not a correctness primitive; it is an API ergonomics shortcut on top of `insert`. | After `Set`/`Get` are stable. |

@@ -5,9 +5,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/Deln0r/ygo/internal/doc"
-	"github.com/Deln0r/ygo/internal/types"
-	"github.com/Deln0r/ygo/persist"
+	"github.com/Arnavsharma2/threadwave/internal/doc"
+	"github.com/Arnavsharma2/threadwave/internal/types"
+	"github.com/Arnavsharma2/threadwave/persist"
 )
 
 // readKey loads the "settings" root map value for key from d.

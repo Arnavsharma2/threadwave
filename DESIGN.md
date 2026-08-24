@@ -22,7 +22,7 @@ Pure-Go implementation of the Yjs CRDT framework, binary-protocol compatible wit
 | Awareness CRDT | Yes |
 | Block squashing | Yes |
 | `Store` interface + `modernc.org/sqlite` impl | Yes |
-| Hocuspocus-compat WebSocket server (`cmd/ygo-server`) | Yes |
+| Hocuspocus-compat WebSocket server (`cmd/threadwave-server`) | Yes |
 | `gomobile bind` build target | Yes |
 
 ## v1.0 scope
@@ -72,7 +72,7 @@ See `docs/yjs-architecture-notes.md` §3.2.
 Idiomatic Go signatures with JS-recognizable type names.
 
 ```go
-doc := ygo.NewDoc()
+doc := threadwave.NewDoc()
 defer doc.Destroy()
 
 txn := doc.WriteTxn()
@@ -127,14 +127,14 @@ Reference impl: `pkg/store/sqlite` using `modernc.org/sqlite`.
 ## Module layout
 
 ```
-github.com/Deln0r/ygo/
-  ygo.go                  # public API surface: Doc/Map/Array/Text/Xml*/Awareness aliases + helpers
-  ygo_test.go             # external-API smoke tests (package ygo_test)
+github.com/Arnavsharma2/threadwave/
+  threadwave.go                  # public API surface: Doc/Map/Array/Text/Xml*/Awareness aliases + helpers
+  threadwave_test.go             # external-API smoke tests (package threadwave_test)
   doc.go                  # package docstring + Version constant
   persist/                # Store interface (public)
   persist/sqlite/         # modernc.org/sqlite reference impl (public)
   server/                 # WebSocket sync server (public; http.Handler)
-  cmd/ygo-server/         # stand-alone server binary
+  cmd/threadwave-server/         # stand-alone server binary
   gomobile/               # bytes-only subset for `gomobile bind` (iOS/Android)
   internal/lib0/          # varint primitives
   internal/block/         # Item / Branch / TypeRef / Repair / Integrate
@@ -154,9 +154,9 @@ github.com/Deln0r/ygo/
 External Go code only needs:
 
 ```go
-import "github.com/Deln0r/ygo"             // Doc, Map, Array, Text, Xml*, Awareness
-import "github.com/Deln0r/ygo/persist/sqlite"   // sqlite Store impl
-import "github.com/Deln0r/ygo/server"      // WebSocket sync server
+import "github.com/Arnavsharma2/threadwave"             // Doc, Map, Array, Text, Xml*, Awareness
+import "github.com/Arnavsharma2/threadwave/persist/sqlite"   // sqlite Store impl
+import "github.com/Arnavsharma2/threadwave/server"      // WebSocket sync server
 ```
 
 The `internal/*` packages are deliberately not importable from outside the module.
@@ -169,7 +169,7 @@ The `internal/*` packages are deliberately not importable from outside the modul
 ## References
 
 - [Yjs](https://github.com/yjs/yjs) — original JS implementation
-- [yrs](https://github.com/y-crdt/y-crdt) — Rust port (executable spec for ygo)
+- [yrs](https://github.com/y-crdt/y-crdt) — Rust port (executable spec for threadwave)
 - [Bartosz Sypytkowski: Deep dive into Yrs architecture](https://www.bartoszsypytkowski.com/yrs-architecture/)
 - [yjs/yjs INTERNALS.md](https://github.com/yjs/yjs/blob/main/INTERNALS.md)
 - [docs.yjs.dev](https://docs.yjs.dev/)

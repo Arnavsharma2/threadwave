@@ -1,6 +1,6 @@
 package undo
 
-import "github.com/Deln0r/ygo/internal/encoding"
+import "github.com/Arnavsharma2/threadwave/internal/encoding"
 
 // StackItem records one captured change for Undo or Redo.
 //
@@ -12,7 +12,7 @@ import "github.com/Deln0r/ygo/internal/encoding"
 // window. Undo restores them (via the redoItem chain in Item.Redone);
 // Redo re-deletes the restorations.
 //
-// Meta is an arbitrary user payload — typically used by editor
+// Meta is an arbitrary user pathreadload — typically used by editor
 // integrations to store and restore a selection range across an
 // Undo / Redo round-trip. The core UndoManager logic never reads or
 // writes Meta; only the consumer does.
