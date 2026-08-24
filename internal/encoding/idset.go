@@ -1,6 +1,7 @@
 package encoding
 
 import (
+	"slices"
 	"sort"
 
 	"github.com/Arnavsharma2/threadwave/internal/lib0"
@@ -139,11 +140,18 @@ func (s *IdSet) ClientCount() int { return len(s.clients) }
 // is why the difference stayed latent until multi-client snapshots.
 func (s *IdSet) Encode(buf []byte) []byte {
 	clients := make([]uint64, 0, len(s.clients))
-	for c := range s.clients {
+	encodedLen := lib0.VarUintLen(uint64(len(s.clients)))
+	for c, ranges := range s.clients {
 		clients = append(clients, c)
+		encodedLen += lib0.VarUintLen(c) + lib0.VarUintLen(uint64(len(ranges)))
+		for _, r := range ranges {
+			encodedLen += lib0.VarUintLen(r.Start) + lib0.VarUintLen(r.Length)
+		}
 	}
-	sort.Slice(clients, func(i, j int) bool { return clients[i] > clients[j] })
+	slices.Sort(clients)
+	slices.Reverse(clients)
 
+	buf = slices.Grow(buf, encodedLen)
 	buf = lib0.WriteVarUint(buf, uint64(len(clients)))
 	for _, c := range clients {
 		ranges := s.clients[c]
