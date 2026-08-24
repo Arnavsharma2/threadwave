@@ -120,8 +120,9 @@ func (c *memConn) Publish(ctx context.Context, docName string, update []byte) er
 		c.hub.mu.Unlock()
 		return ErrClosed
 	}
-	var targets []*memSub
-	for _, s := range c.hub.subs[docName] {
+	roomSubs := c.hub.subs[docName]
+	targets := make([]*memSub, 0, len(roomSubs))
+	for _, s := range roomSubs {
 		if s.origin != c.origin { // never echo to the publisher
 			targets = append(targets, s)
 		}
