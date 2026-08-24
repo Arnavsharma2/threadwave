@@ -161,3 +161,28 @@ func buildSnapshotUpdate(t *testing.T, _ *doc.Doc, snapshot store.StateVector) [
 	}
 	return EncodeStateAsUpdate(d)
 }
+
+func BenchmarkFirstUnknownCell(b *testing.B) {
+	const cells = 1 << 16
+	list := store.NewClientBlockList()
+	for clock := uint64(0); clock < cells; clock++ {
+		list.Push(store.CellOfGC(clock, clock))
+	}
+
+	for _, tc := range []struct {
+		name  string
+		clock uint64
+	}{
+		{name: "middle", clock: cells / 2},
+		{name: "last", clock: cells - 1},
+	} {
+		b.Run(tc.name, func(b *testing.B) {
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				if got := firstUnknownCell(list, tc.clock); got != int(tc.clock) {
+					b.Fatalf("firstUnknownCell(%d) = %d", tc.clock, got)
+				}
+			}
+		})
+	}
+}
