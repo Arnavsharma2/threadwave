@@ -1,11 +1,27 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"log"
+	"strings"
 	"sync"
 	"testing"
 )
+
+func TestServer_CustomLogger(t *testing.T) {
+	var output bytes.Buffer
+	s := New(Options{Logger: log.New(&output, "threadwave-test: ", 0)})
+	t.Cleanup(func() { _ = s.Close(context.Background()) })
+
+	s.applyBackplaneMessage(&docState{name: "room"}, []byte{99})
+
+	got := output.String()
+	if !strings.Contains(got, `threadwave-test: server: backplane message for "room": unknown kind 99`) {
+		t.Fatalf("custom logger output = %q", got)
+	}
+}
 
 // TestServer_Stats_CountsDocsAndConns checks the snapshot against a known
 // sequence of admissions and a release: the document count tracks

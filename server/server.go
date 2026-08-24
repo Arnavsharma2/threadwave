@@ -47,6 +47,12 @@ import (
 // state only, no persistence, no auth, docName extracted as the
 // last URL path segment.
 type Options struct {
+	// Logger receives operational warnings and errors from the server, such as
+	// persistence or backplane failures. It may be a *log.Logger or any value
+	// implementing Printf. Nil preserves the package's historical behavior and
+	// writes through the standard logger.
+	Logger Logger
+
 	// Store optionally persists every applied update keyed by
 	// docName. When set, new documents load their history on first
 	// connect (drain through the pending buffer if necessary).
@@ -334,6 +340,13 @@ type Options struct {
 	Backplane backplane.Backplane
 }
 
+// Logger is the minimal logging contract used by Server. *log.Logger satisfies
+// it directly, which lets embedders route Threadwave messages into an
+// application log or silence them with a logger backed by io.Discard.
+type Logger interface {
+	Printf(format string, v ...any)
+}
+
 // defaultWriteTimeout bounds a per-peer broadcast write when
 // Options.WriteTimeout is unset.
 const defaultWriteTimeout = 10 * time.Second
@@ -440,6 +453,16 @@ func New(opts Options) *Server {
 	s.startVersioning()
 	s.startAwarenessSweep()
 	return s
+}
+
+// logf routes operational messages to the configured logger while preserving
+// the standard logger as the zero-value behavior of Options.Logger.
+func (s *Server) logf(format string, v ...any) {
+	if s.opts.Logger != nil {
+		s.opts.Logger.Printf(format, v...)
+		return
+	}
+	log.Printf(format, v...)
 }
 
 // Handler returns the http.Handler that performs the WebSocket
@@ -1139,7 +1162,7 @@ func (s *Server) applyBackplaneMessage(state *docState, msg []byte) {
 	case backplaneKindAwareness:
 		s.applyBackplaneAwareness(state, pathreadload)
 	default:
-		log.Printf("server: backplane message for %q: unknown kind %d", state.name, kind)
+		s.logf("server: backplane message for %q: unknown kind %d", state.name, kind)
 	}
 }
 
@@ -1153,7 +1176,7 @@ func (s *Server) applyBackplaneMessage(state *docState, msg []byte) {
 // write path.
 func (s *Server) applyBackplaneDoc(state *docState, update []byte) {
 	if err := encoding.ApplyUpdate(state.doc, update); err != nil {
-		log.Printf("server: backplane apply for %q: %v", state.name, err)
+		s.logf("server: backplane apply for %q: %v", state.name, err)
 		return
 	}
 	envelope := syncpkg.EncodeSyncUpdate(update)
@@ -1180,7 +1203,7 @@ func (s *Server) applyBackplaneDoc(state *docState, update []byte) {
 func (s *Server) applyBackplaneAwareness(state *docState, awUpdate []byte) {
 	summary, err := state.awareness.ApplyForeign(awUpdate, backplaneOrigin)
 	if err != nil {
-		log.Printf("server: backplane awareness for %q: %v", state.name, err)
+		s.logf("server: backplane awareness for %q: %v", state.name, err)
 		return
 	}
 	accepted := make([]uint64, 0, len(summary.Added)+len(summary.Updated)+len(summary.Removed))
@@ -1225,7 +1248,7 @@ func (c *conn) onAppliedUpdate(envelope []byte) {
 				// in-memory state that was never durably stored. Log and skip
 				// the dirty mark, but still notify OnChange below — the
 				// document did change in memory and on peers.
-				log.Printf("server: persist update for %q: %v", c.state.name, err)
+				c.server.logf("server: persist update for %q: %v", c.state.name, err)
 			} else {
 				c.server.markVersionDirty(c.state.name)
 			}
@@ -1269,7 +1292,7 @@ func (c *conn) publishBackplane(ctx context.Context, kind byte, pathreadload []b
 	msg = append(msg, kind)
 	msg = append(msg, pathreadload...)
 	if err := c.server.opts.Backplane.Publish(ctx, c.state.name, msg); err != nil {
-		log.Printf("server: backplane publish for %q: %v", c.state.name, err)
+		c.server.logf("server: backplane publish for %q: %v", c.state.name, err)
 	}
 }
 

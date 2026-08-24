@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"github.com/Arnavsharma2/threadwave/persist"
@@ -23,7 +22,7 @@ func (s *Server) startVersioning() {
 	}
 	vs, ok := s.opts.Store.(persist.VersionedStore)
 	if !ok {
-		log.Printf("server: VersionInterval set but Store does not implement persist.VersionStore; auto-versioning disabled")
+		s.logf("server: VersionInterval set but Store does not implement persist.VersionStore; auto-versioning disabled")
 		return
 	}
 	s.versionStop = make(chan struct{})
@@ -80,13 +79,13 @@ func (s *Server) sweepVersions(ctx context.Context, vs persist.VersionedStore) {
 
 	for name := range dirty {
 		if _, err := persist.SaveVersion(ctx, vs, name, "auto"); err != nil {
-			log.Printf("server: auto-version %q: %v", name, err)
+			s.logf("server: auto-version %q: %v", name, err)
 			s.markVersionDirty(name) // retry on the next sweep
 			continue
 		}
 		if s.opts.KeepVersions > 0 {
 			if _, err := persist.PruneVersions(ctx, vs, name, s.opts.KeepVersions); err != nil {
-				log.Printf("server: prune versions %q: %v", name, err)
+				s.logf("server: prune versions %q: %v", name, err)
 			}
 		}
 	}
