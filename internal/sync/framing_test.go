@@ -133,6 +133,24 @@ func TestDecode_UnknownMessageType_PayloadOpaque(t *testing.T) {
 	}
 }
 
+func BenchmarkEncodeBinaryEnvelope(b *testing.B) {
+	payload := bytes.Repeat([]byte{0xab}, 4096)
+	for _, tc := range []struct {
+		name string
+		fn   func([]byte) []byte
+	}{
+		{name: "sync-update", fn: EncodeSyncUpdate},
+		{name: "awareness", fn: EncodeAwareness},
+	} {
+		b.Run(tc.name, func(b *testing.B) {
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				_ = tc.fn(payload)
+			}
+		})
+	}
+}
+
 func TestEncodeSyncStep1_WireBytesMatchKnownLayout(t *testing.T) {
 	// Hand-built fixture: SV bytes are [0x01, 0x05].
 	//   0x00       varuint(0) = MessageSync
