@@ -619,3 +619,21 @@ func BenchmarkEncodeUpdate(b *testing.B) {
 		_ = encodeUpdate(entries)
 	}
 }
+
+func BenchmarkDecodeUpdate(b *testing.B) {
+	const clients = 4096
+	payload := []byte(`{"name":"threadwave","cursor":{"anchor":1234,"head":1250}}`)
+	entries := make([]wireEntry, clients)
+	for i := range entries {
+		entries[i] = wireEntry{ClientID: uint64(i), Clock: uint32(i), JSON: payload}
+	}
+	wire := encodeUpdate(entries)
+	b.ReportAllocs()
+	b.SetBytes(int64(len(wire)))
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if _, _, err := decodeUpdate(wire); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
