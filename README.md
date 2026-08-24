@@ -210,12 +210,6 @@ and roadmap evolve.
 4. **Pluggable persistence** with `modernc.org/sqlite` reference implementation.
 5. **Performance within 2× of [yrs](https://github.com/y-crdt/y-crdt)** on `dmonad/crdt-benchmarks` B1-B4. See [BENCHMARKS.md](BENCHMARKS.md).
 
-## Non-goals
-
-- C-FFI surface. [Yrs](https://github.com/y-crdt/y-crdt) already provides this; Threadwave's unique value is pure-Go native binaries.
-- Drop-in replacement for the Node.js Yjs runtime. Threadwave is the Go port; use `yjs` itself if you want a JavaScript runtime.
-- Loro, Automerge, RGA, or other CRDT designs. Threadwave implements the Yjs wire format, period.
-
 ## Wire compatibility
 
 The single most-important guarantee of this project is byte-level wire compatibility with `yjs@13.x`. This is enforced by **158 cross-language fixture scenarios** (plus 56 lib0 primitive vectors):
