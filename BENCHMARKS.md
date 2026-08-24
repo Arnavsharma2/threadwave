@@ -261,7 +261,7 @@ go test -bench=. -benchtime=5x -count=5 -benchmem ./benchmarks/ | tee bench.txt
 benchstat bench.txt
 ```
 
-## Server transport (threadwave-only)
+## Server transport (Threadwave-only)
 
 The WebSocket sync server (`server`) has its own benchmarks in
 `server/bench_test.go`. There is no yrs equivalent to compare against

@@ -1,4 +1,4 @@
-# NATS backplane for threadwave
+# NATS backplane for Threadwave
 
 A [NATS](https://nats.io)-backed `backplane.Backplane` so several threadwave servers
 behind a load balancer converge on the same document. It is a **separate Go

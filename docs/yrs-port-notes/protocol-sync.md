@@ -145,7 +145,7 @@ Go: `server/conn.go` holds `controlledClients map[uint64]struct{}` per connectio
 
 6. **Skip-self is NOT enforced at the network layer by the reference servers.** Both `utils.js:77-83` and Hocuspocus's `Document.broadcast` fan out to every connection including the originator. Safe because Yjs updates are idempotent. Do not add a skip-self check unless you have profiled a real win; deviating risks subtle bugs where the originator's local state is racy and the echo would actually correct it.
 
-7. **Hocuspocus may emit V2 updates we do not support.** Some Hocuspocus extensions call `Y.encodeStateAsUpdateV2`. threadwave implements only V1. Reject V2 frames cleanly with a clear error rather than crashing; V2 codec is a v0.3 workstream.
+7. **Hocuspocus may emit V2 updates the sync envelope does not negotiate.** Some Hocuspocus extensions call `Y.encodeStateAsUpdateV2`. Threadwave supports V2 through its explicit V2 API, while the WebSocket sync path is V1. Reject an unexpected V2 frame cleanly rather than crashing.
 
 8. **Connection-counted doc lifecycle.** A doc's in-memory state is freed only when its last connection closes (`utils.js:196-202`). Servers must reference-count conns per doc and persist on the final disconnect; failure leaks `*Doc` instances.
 
