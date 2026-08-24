@@ -9,8 +9,8 @@
 //	go run ./examples/collab-client -url ws://localhost:8080/collab -doc room1 -name alice
 //	go run ./examples/collab-client -url ws://localhost:8080/collab -doc room1 -name bob
 //
-// The two clients see each other's entries. It also speaks to the public
-// demo: -url wss://threadwave.deln0r.com/ws -doc <your-room>.
+// The two clients see each other's entries. The -url flag can also point at
+// any compatible deployed y-websocket or Hocuspocus endpoint.
 package main
 
 import (

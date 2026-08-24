@@ -18,11 +18,8 @@ go run ./examples/collab-client -url ws://localhost:8080/collab -doc room1 -name
 ```
 
 Each client appends its `-name` to the shared `items` array and logs the
-others' entries as they arrive. It also speaks to the public demo:
-
-```sh
-go run ./examples/collab-client -url wss://threadwave.deln0r.com/ws -doc my-room -name alice
-```
+others' entries as they arrive. Replace `-url` with any compatible deployed
+y-websocket or Hocuspocus endpoint to test against another server.
 
 ## What it demonstrates
 
