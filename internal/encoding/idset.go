@@ -110,7 +110,7 @@ func (s *IdSet) Iterate(fn func(client uint64, ranges []Range)) {
 	for c := range s.clients {
 		clients = append(clients, c)
 	}
-	sort.Slice(clients, func(i, j int) bool { return clients[i] < clients[j] })
+	slices.Sort(clients)
 	for _, c := range clients {
 		fn(c, s.clients[c])
 	}
