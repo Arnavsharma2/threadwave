@@ -160,5 +160,3 @@ enforcement is the backstop, not the client's only guard.
   sticky-session load balancer in front and shard documents by path).
 - **Graceful shutdown.** SIGINT/SIGTERM flushes every open document's
   update log into a single compacted snapshot before exit.
-- **`threadwave-server`** is the deprecated former name of this binary; it
-  still builds and runs, but new flags land in threadserve only.

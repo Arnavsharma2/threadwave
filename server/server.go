@@ -5,7 +5,7 @@
 // own http.ServeMux at any path prefix. Per port-note §"Go
 // translation choices" — every adopter already has an HTTP server,
 // so we layer on top rather than impose our own runtime. A 30-line
-// cmd/threadwave-server/main.go binary wraps this for stand-alone use.
+// cmd/threadserve/main.go wraps this for stand-alone use.
 //
 // Wire format compatibility: the bare y-websocket subset of the
 // Hocuspocus envelope (tags 0=Sync, 1=Awareness, 3=QueryAwareness).

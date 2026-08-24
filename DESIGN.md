@@ -22,7 +22,7 @@ Pure-Go implementation of the Yjs CRDT framework, binary-protocol compatible wit
 | Awareness CRDT | Yes |
 | Block squashing | Yes |
 | `Store` interface + `modernc.org/sqlite` impl | Yes |
-| Hocuspocus-compat WebSocket server (`cmd/threadwave-server`) | Yes |
+| Hocuspocus-compat WebSocket server (`cmd/threadserve`) | Yes |
 | `gomobile bind` build target | Yes |
 
 ## v1.0 scope
@@ -134,7 +134,7 @@ github.com/Arnavsharma2/threadwave/
   persist/                # Store interface (public)
   persist/sqlite/         # modernc.org/sqlite reference impl (public)
   server/                 # WebSocket sync server (public; http.Handler)
-  cmd/threadwave-server/         # stand-alone server binary
+  cmd/threadserve/               # stand-alone server binary
   gomobile/               # bytes-only subset for `gomobile bind` (iOS/Android)
   internal/lib0/          # varint primitives
   internal/block/         # Item / Branch / TypeRef / Repair / Integrate

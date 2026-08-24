@@ -27,7 +27,6 @@ go.work.sum
 /dist/
 
 # Compiled command-line binaries built at repo root by `go build ./cmd/...`
-/threadwave-server
 
 # Node fixture generator
 testdata/gen/node_modules/
@@ -43,7 +42,6 @@ testdata/b4-trace.json
 
 # Local build artifacts (go build ./cmd/...)
 /threadserve
-/threadwave-server
 /collab-server
 /collab-client
 /offline-first

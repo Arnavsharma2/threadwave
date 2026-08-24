@@ -220,7 +220,7 @@ func TestServer_Awareness_BroadcastBetweenClients(t *testing.T) {
 func TestServer_Persistence_StateSurvivesRestart(t *testing.T) {
 	// Round 1: server with a file-backed sqlite store; one client
 	// pushes content; disconnect.
-	dbPath := filepath.Join(t.TempDir(), "threadwave-server.db")
+	dbPath := filepath.Join(t.TempDir(), "threadserve.db")
 	store1, err := sqlite.Open(dbPath)
 	if err != nil {
 		t.Fatal(err)
