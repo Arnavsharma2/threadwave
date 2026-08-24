@@ -1,8 +1,9 @@
 package encoding
 
 import (
+	"cmp"
 	"fmt"
-	"sort"
+	"slices"
 
 	"github.com/Arnavsharma2/threadwave/internal/block"
 	"github.com/Arnavsharma2/threadwave/internal/doc"
@@ -89,7 +90,7 @@ func EncodeDiff(d *doc.Doc, txn *doc.Transaction, remoteSV store.StateVector) []
 		client     uint64
 		startClock uint64
 	}
-	var diff []clientRun
+	diff := make([]clientRun, 0, len(localSV))
 	for c, localClock := range localSV {
 		remoteClock := uint64(0)
 		if remoteSV != nil {
@@ -100,7 +101,9 @@ func EncodeDiff(d *doc.Doc, txn *doc.Transaction, remoteSV store.StateVector) []
 		}
 	}
 	// Descending by clientID.
-	sort.Slice(diff, func(i, j int) bool { return diff[i].client > diff[j].client })
+	slices.SortFunc(diff, func(a, b clientRun) int {
+		return cmp.Compare(b.client, a.client)
+	})
 
 	buf := lib0.WriteVarUint(nil, uint64(len(diff)))
 	for _, run := range diff {
@@ -236,7 +239,7 @@ func buildDeleteSetFromStore(bs *store.BlockStore, sv store.StateVector) *IdSet 
 	for c := range sv {
 		clients = append(clients, c)
 	}
-	sort.Slice(clients, func(i, j int) bool { return clients[i] < clients[j] })
+	slices.Sort(clients)
 	for _, c := range clients {
 		l := bs.GetClient(c)
 		if l == nil {
