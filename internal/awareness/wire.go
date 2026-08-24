@@ -28,9 +28,9 @@ const MaxUpdateEntries = 65536
 // is tighter still, so this never rejects legitimate server traffic.)
 const MaxStatePayloadBytes = 64 * 1024
 
-// wireEntry is the per-client wire-format record assembled before
-// encoding. JSON is the raw payload bytes — either the user's
-// JSON state or the literal four-byte "null" sentinel for removals.
+// wireEntry is the per-client wire-format record assembled before encoding or
+// returned by decoding. Decoded JSON aliases the input update buffer and must
+// not outlive it; Apply copies accepted state into Awareness-owned storage.
 type wireEntry struct {
 	ClientID uint64
 	Clock    uint32
@@ -105,19 +105,19 @@ func decodeUpdate(buf []byte) ([]wireEntry, []byte, error) {
 			return nil, buf, fmt.Errorf("decode entry[%d] clock %d exceeds uint32", i, clockU)
 		}
 
-		jsonStr, n, err := lib0.ReadVarString(buf)
+		jsonBytes, n, err := lib0.ReadVarUint8Array(buf)
 		if err != nil {
 			return nil, buf, fmt.Errorf("decode entry[%d] json: %w", i, err)
 		}
-		if len(jsonStr) > MaxStatePayloadBytes {
-			return nil, buf, fmt.Errorf("decode entry[%d] json payload %d bytes exceeds limit %d", i, len(jsonStr), MaxStatePayloadBytes)
+		if len(jsonBytes) > MaxStatePayloadBytes {
+			return nil, buf, fmt.Errorf("decode entry[%d] json payload %d bytes exceeds limit %d", i, len(jsonBytes), MaxStatePayloadBytes)
 		}
 		buf = buf[n:]
 
 		out = append(out, wireEntry{
 			ClientID: clientID,
 			Clock:    uint32(clockU),
-			JSON:     []byte(jsonStr),
+			JSON:     jsonBytes,
 		})
 	}
 	return out, buf, nil
