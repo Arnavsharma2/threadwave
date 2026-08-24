@@ -3,7 +3,17 @@ package lib0
 import (
 	"encoding/binary"
 	"math"
+	"math/bits"
 )
+
+// VarUintLen returns the number of bytes WriteVarUint needs for n without
+// encoding it. It is useful for reserving exact output capacity on hot paths.
+func VarUintLen(n uint64) int {
+	if n == 0 {
+		return 1
+	}
+	return (bits.Len64(n) + 6) / 7
+}
 
 // WriteVarUint appends the LEB128-style varuint encoding of n to buf and returns
 // the extended slice. Bytes use 7 bits of value with the MSB as the continuation

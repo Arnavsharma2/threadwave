@@ -29,6 +29,14 @@ func TestWriteVarUint_KnownValues(t *testing.T) {
 	}
 }
 
+func TestVarUintLen(t *testing.T) {
+	for _, n := range []uint64{0, 1, 0x7f, 0x80, 0x3fff, 0x4000, 1<<63 - 1, 1 << 63, math.MaxUint64} {
+		if got, want := VarUintLen(n), len(WriteVarUint(nil, n)); got != want {
+			t.Errorf("VarUintLen(%d) = %d, want %d", n, got, want)
+		}
+	}
+}
+
 func TestReadVarUint_RoundTrip(t *testing.T) {
 	values := []uint64{
 		0, 1, 2, 63, 64, 127, 128, 255, 256,
