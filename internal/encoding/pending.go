@@ -2,6 +2,7 @@ package encoding
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 
 	"github.com/Arnavsharma2/threadwave/internal/block"
@@ -270,7 +271,7 @@ func (p *Pending) Drain(txn *doc.TransactionMut) int {
 	for c := range p.Blocks {
 		clients = append(clients, c)
 	}
-	sort.Slice(clients, func(i, j int) bool { return clients[i] < clients[j] })
+	slices.Sort(clients)
 
 	for _, c := range clients {
 		list := p.Blocks[c]
