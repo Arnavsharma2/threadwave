@@ -64,10 +64,7 @@ var ErrUnknownSyncSubType = errors.New("sync: unknown sync sub-type")
 //	varuint(0)   = SyncStep1
 //	varbuffer(sv)
 func EncodeSyncStep1(sv []byte) []byte {
-	buf := lib0.WriteVarUint(nil, uint64(MessageSync))
-	buf = lib0.WriteVarUint(buf, uint64(SyncStep1))
-	buf = lib0.WriteVarUint8Array(buf, sv)
-	return buf
+	return encodeSyncPayload(SyncStep1, sv)
 }
 
 // EncodeSyncStep2 builds a MessageSync envelope carrying SyncStep2.
@@ -76,18 +73,23 @@ func EncodeSyncStep1(sv []byte) []byte {
 // signals "I have nothing the sender is missing" — see port-note
 // gotcha 2.
 func EncodeSyncStep2(update []byte) []byte {
-	buf := lib0.WriteVarUint(nil, uint64(MessageSync))
-	buf = lib0.WriteVarUint(buf, uint64(SyncStep2))
-	buf = lib0.WriteVarUint8Array(buf, update)
-	return buf
+	return encodeSyncPayload(SyncStep2, update)
 }
 
 // EncodeSyncUpdate builds a MessageSync envelope carrying an
 // unsolicited Update — the steady-state broadcast.
 func EncodeSyncUpdate(update []byte) []byte {
-	buf := lib0.WriteVarUint(nil, uint64(MessageSync))
-	buf = lib0.WriteVarUint(buf, uint64(SyncUpdate))
-	buf = lib0.WriteVarUint8Array(buf, update)
+	return encodeSyncPayload(SyncUpdate, update)
+}
+
+func encodeSyncPayload(sub SyncSubType, payload []byte) []byte {
+	capacity := lib0.VarUintLen(uint64(MessageSync)) +
+		lib0.VarUintLen(uint64(sub)) +
+		lib0.VarUintLen(uint64(len(payload))) + len(payload)
+	buf := make([]byte, 0, capacity)
+	buf = lib0.WriteVarUint(buf, uint64(MessageSync))
+	buf = lib0.WriteVarUint(buf, uint64(sub))
+	buf = lib0.WriteVarUint8Array(buf, payload)
 	return buf
 }
 
@@ -97,7 +99,10 @@ func EncodeSyncUpdate(update []byte) []byte {
 //
 // Wire layout: varuint(1) • varbuffer(awarenessUpdate)
 func EncodeAwareness(awarenessUpdate []byte) []byte {
-	buf := lib0.WriteVarUint(nil, uint64(MessageAwareness))
+	capacity := lib0.VarUintLen(uint64(MessageAwareness)) +
+		lib0.VarUintLen(uint64(len(awarenessUpdate))) + len(awarenessUpdate)
+	buf := make([]byte, 0, capacity)
+	buf = lib0.WriteVarUint(buf, uint64(MessageAwareness))
 	buf = lib0.WriteVarUint8Array(buf, awarenessUpdate)
 	return buf
 }
