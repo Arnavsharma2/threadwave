@@ -149,14 +149,10 @@ func firstUnknownCell(clientList *store.ClientBlockList, remoteClock uint64) int
 	if remoteClock == 0 {
 		return 0
 	}
-	n := clientList.Len()
-	for i := 0; i < n; i++ {
-		cell, _ := clientList.Get(i)
-		if cell.ClockEnd() >= remoteClock {
-			return i
-		}
+	if i, ok := clientList.FindPivot(remoteClock); ok {
+		return i
 	}
-	return n
+	return clientList.Len()
 }
 
 // encodeCell writes one cell's wire record (info byte + conditional
