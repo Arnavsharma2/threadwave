@@ -1,15 +1,21 @@
 # Threadwave
 
-[![Official Yjs port](https://img.shields.io/badge/Yjs%20docs-official%20port-7c3aed.svg)](https://docs.yjs.dev/ecosystem/ports-to-other-languages)
 [![CI](https://github.com/Arnavsharma2/threadwave/actions/workflows/test.yml/badge.svg)](https://github.com/Arnavsharma2/threadwave/actions/workflows/test.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/Arnavsharma2/threadwave.svg)](https://pkg.go.dev/github.com/Arnavsharma2/threadwave)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Go Version](https://img.shields.io/badge/go-1.25%2B-00ADD8.svg)](go.mod)
 [![Yjs Protocol](https://img.shields.io/badge/Yjs%20protocol-V1%20%2B%20V2-7c3aed.svg)](https://github.com/yjs/yjs)
-[![Live Demo](https://img.shields.io/badge/live%20demo-threadwave.deln0r.com-22c55e.svg)](https://threadwave.deln0r.com)
-[![Codeberg Mirror](https://img.shields.io/badge/codeberg-mirror-2185d0?logo=codeberg&logoColor=white)](https://codeberg.org/Deln0r/threadwave)
 
-Pure-Go port of [Yjs](https://github.com/yjs/yjs), the CRDT framework for collaborative applications, [officially listed](https://docs.yjs.dev/ecosystem/ports-to-other-languages) in the Yjs documentation's ports page.
+Threadwave is a pure-Go collaborative state engine for offline-first, realtime,
+server, and mobile applications. It implements the [Yjs](https://github.com/yjs/yjs)
+V1 and V2 protocols so existing JavaScript clients can synchronize with Go
+services without a Node runtime or CGO.
+
+> **Upstream credit:** Threadwave is independently published and built from
+> [Deln0r/ygo](https://github.com/Deln0r/ygo), created by
+> [Ivan Chechin (Deln0r)](https://github.com/Deln0r) and its contributors.
+> Threadwave is not presented as the official Yjs-listed port. See
+> [NOTICE.md](NOTICE.md) for provenance and licensing details.
 
 Threadwave speaks the **Yjs V1 and V2 wire formats byte-for-byte**. JavaScript clients running `yjs@13.x` synchronize directly with Go servers and vice versa, with both directions verified through **158 cross-language fixture scenarios** generated from `yjs@13.6.32`. The bundled WebSocket server is Hocuspocus-compatible. No CGO; `gomobile bind` produces an iOS xcframework and Android AAR (manually verified, not run in CI).
 
@@ -24,10 +30,6 @@ Threadwave speaks the **Yjs V1 and V2 wire formats byte-for-byte**. JavaScript c
 - **Forward-looking wire handling.** threadwave handles 53-bit client IDs throughout (byte-verified above 2^32), the confirmed wire-level change in the `yjs@14` release candidate, and decodes Skip structs in the update stream as no-op gaps (part of the wire format since yjs v13.5). Full attribution / IdMap support waits for the v14 format to stabilize.
 - **Ready-to-run server: [threadserve](docs/threadserve.md).** A self-hosted Yjs server in a single static binary — a Hocuspocus alternative with no Node, no Redis, no CGO. Same wire protocol, so existing `@hocuspocus/provider` / `y-websocket` clients connect unchanged; SQLite persistence and periodic document versioning built in. Also embeds as a plain `http.Handler` inside an existing Go backend.
 - **Scales horizontally.** Several server instances behind a load balancer converge on the same document through a pluggable [backplane](server/backplane): edits and live cursors both cross instances, so two users on different servers collaborate as if on one. An in-process hub ships in the core; an opt-in [NATS adapter](server/backplane/nats) (versioned separately so the core stays dependency-free) spans machines, with a JetStream mode that resumes delivery across a broker reconnect or restart. Clustered instances share one `Store` and run the same threadwave version.
-- **EU-sovereign mirror** on [codeberg.org/Deln0r/threadwave](https://codeberg.org/Deln0r/threadwave), auto-synced from GitHub on every push for adopters who prefer or require EU-hosted code infrastructure.
-
-**Live demo:** open [threadwave.deln0r.com](https://threadwave.deln0r.com) in two browser tabs and start typing. Same protocol any standard Yjs ecosystem client speaks, with a pure-Go server behind it.
-
 ## Quick start
 
 ```go
@@ -153,7 +155,10 @@ defer unsub()
 
 ## Status
 
-**Feature-complete and stable.** The CRDT engine, the V1 and V2 wire formats, and the full type set above are validated bidirectionally against `yjs@13.6.32` and exercised in CI on every push. The public API is considered stable for the v1.x line; changes follow semantic versioning, with new functionality as minor releases and breaking changes deferred to a future major.
+**Mature foundation, new standalone project.** The imported CRDT engine, V1 and
+V2 wire formats, and type set are validated bidirectionally against
+`yjs@13.6.32`. Threadwave itself is pre-1.0 while its independently branded API
+and roadmap evolve.
 
 | Layer | Status |
 |---|---|
@@ -248,7 +253,11 @@ A direct head-to-head harness against native yrs under identical hardware is on 
 
 ## Roadmap
 
-Shipped since v1.0 (June 2026): a full Hocuspocus-compatible sync server (connection lifecycle hooks, read-only viewers, resource caps, a stats snapshot), horizontal scaling across instances with cross-cluster cursors, an offline-first Go client, WAL-backed SQLite persistence, continuous fuzzing, and the yjs update-level utilities. See the [CHANGELOG](CHANGELOG.md), the [releases](https://github.com/Arnavsharma2/threadwave/releases), and [examples/](examples).
+The initial foundation comes from
+[Deln0r/ygo v1.16.0](https://github.com/Deln0r/ygo/releases/tag/v1.16.0): a
+Hocuspocus-compatible sync server, horizontal scaling, an offline-first Go
+client, SQLite persistence, fuzzing, and Yjs update utilities. Threadwave's own
+changes are tracked in the [changelog](CHANGELOG.md).
 
 Open: a documentation site, an external security audit, and yjs v14 wire features (attribution / IdMap) once v14 reaches GA.
 
@@ -280,5 +289,8 @@ MIT. See [LICENSE](LICENSE).
 
 ## Acknowledgements
 
+- [Ivan Chechin (Deln0r)](https://github.com/Deln0r) and all
+  [ygo contributors](https://github.com/Deln0r/ygo/graphs/contributors) for the
+  original Go implementation on which Threadwave is based.
 - [Kevin Jahns (dmonad)](https://github.com/dmonad) for [Yjs](https://github.com/yjs/yjs) and the YATA algorithm.
 - [Bartosz Sypytkowski](https://www.bartoszsypytkowski.com/) for [yrs](https://github.com/y-crdt/y-crdt) and the [architecture deep dive](https://www.bartoszsypytkowski.com/yrs-architecture/).
