@@ -51,7 +51,14 @@ type wireEntry struct {
 // canonicalization happens here — round-trip byte equality is not
 // part of the wire-format contract.
 func encodeUpdate(entries []wireEntry) []byte {
-	buf := lib0.WriteVarUint(nil, uint64(len(entries)))
+	encodedLen := lib0.VarUintLen(uint64(len(entries)))
+	for _, e := range entries {
+		encodedLen += lib0.VarUintLen(e.ClientID) +
+			lib0.VarUintLen(uint64(e.Clock)) +
+			lib0.VarUintLen(uint64(len(e.JSON))) + len(e.JSON)
+	}
+	buf := make([]byte, 0, encodedLen)
+	buf = lib0.WriteVarUint(buf, uint64(len(entries)))
 	for _, e := range entries {
 		buf = lib0.WriteVarUint(buf, e.ClientID)
 		buf = lib0.WriteVarUint(buf, uint64(e.Clock))
