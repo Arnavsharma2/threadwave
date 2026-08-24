@@ -91,3 +91,15 @@ func TestStateVector_DecodeTruncated(t *testing.T) {
 		}
 	}
 }
+
+func BenchmarkEncodeStateVector(b *testing.B) {
+	sv := make(store.StateVector, 4096)
+	for client := uint64(0); client < 4096; client++ {
+		sv[client] = client * 3
+	}
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = EncodeStateVector(sv, nil)
+	}
+}
