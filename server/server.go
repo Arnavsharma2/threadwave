@@ -22,12 +22,13 @@
 package server
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
-	"sort"
+	"slices"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -516,7 +517,9 @@ func (s *Server) Stats() Stats {
 		st.Connections += n
 		st.Docs = append(st.Docs, DocStat{Name: name, Connections: n})
 	}
-	sort.Slice(st.Docs, func(i, j int) bool { return st.Docs[i].Name < st.Docs[j].Name })
+	slices.SortFunc(st.Docs, func(a, b DocStat) int {
+		return cmp.Compare(a.Name, b.Name)
+	})
 	return st
 }
 
