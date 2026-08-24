@@ -71,6 +71,21 @@ go install github.com/Arnavsharma2/threadwave/cmd/threadserve@latest
 threadserve -addr :1234 -store data.db -version-interval 10m
 ```
 
+### Application-owned server logging
+
+Embedded servers can route operational persistence, backplane, and versioning
+messages through their own logger:
+
+```go
+srv := server.New(server.Options{
+    Logger: log.New(os.Stderr, "threadwave: ", log.LstdFlags),
+})
+```
+
+`Logger` accepts the small `Printf(format, ...any)` contract implemented by
+`*log.Logger`. Leave it nil for standard Go logging, or use a logger backed by
+`io.Discard` to silence server diagnostics.
+
 ### Undo / Redo
 
 Wrap any shared types in an `UndoManager` to get scoped, grouped Undo / Redo:
