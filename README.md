@@ -276,7 +276,7 @@ The core CRDT API also has output-verified [runnable examples on pkg.go.dev](htt
 ## Documentation
 
 - [DESIGN.md](DESIGN.md) — project design document
-- [CHANGELOG.md](CHANGELOG.md) — release history, with an upgrade-impact note on every release that changes what a running deployment does
+- [CHANGELOG.md](CHANGELOG.md) — Threadwave's independent change history
 - [BENCHMARKS.md](BENCHMARKS.md) — performance baseline + B1-B4 methodology
 - [gomobile/README.md](gomobile/README.md) — iOS xcframework + Android AAR build instructions
 - [docs/yrs-port-notes/](docs/yrs-port-notes/) — per-layer port notes describing how each yrs subsystem maps to Go
