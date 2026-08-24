@@ -2,18 +2,22 @@
 
 ## Supported Versions
 
-Threadwave is in pre-1.0 development. Security fixes are applied to the latest tagged release on `main`. Older minor versions are not patched.
+Threadwave is in pre-1.0 development. Security fixes are applied to `main`
+until the first release is tagged.
 
 | Version | Supported |
 | ------- | --------- |
-| 0.9.x   | yes       |
-| < 0.9   | no        |
+| `main`  | yes       |
 
 ## Reporting a Vulnerability
 
 If you find a security issue, please report it privately rather than opening a public GitHub issue.
 
-Email: ian00chechin@gmail.com
+Use GitHub's
+[private vulnerability reporting](https://github.com/Arnavsharma2/threadwave/security/advisories/new).
+If that form is unavailable, contact
+[@Arnavsharma2](https://github.com/Arnavsharma2) privately through the contact
+information on the account profile.
 
 Please include:
 

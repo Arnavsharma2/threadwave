@@ -1,4 +1,4 @@
-# Contributing to threadwave
+# Contributing to Threadwave
 
 Thanks for your interest. This document explains how to contribute.
 
@@ -47,7 +47,8 @@ If your change touches encoding/decoding paths:
 
 - GitHub Discussions for design questions and Q&A.
 - GitHub Issues for bugs and concrete proposals.
-- Mention `@Deln0r` for maintainer attention.
+- Mention [`@Arnavsharma2`](https://github.com/Arnavsharma2) for maintainer
+  attention.
 
 ## License
 

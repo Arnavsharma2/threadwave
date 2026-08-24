@@ -4,7 +4,10 @@ This project follows the [Contributor Covenant v2.1](https://www.contributor-cov
 
 ## Reporting
 
-Report unacceptable behavior to the project maintainer via the email associated with the GitHub account [@Deln0r](https://github.com/Deln0r), or by opening a GitHub issue marked confidential if the project supports it.
+Report unacceptable behavior privately to the maintainer through the contact
+information associated with
+[@Arnavsharma2](https://github.com/Arnavsharma2). Do not publish sensitive
+reports in a public issue.
 
 All complaints will be reviewed and investigated promptly and fairly.
 
