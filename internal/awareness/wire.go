@@ -55,7 +55,10 @@ func encodeUpdate(entries []wireEntry) []byte {
 	for _, e := range entries {
 		buf = lib0.WriteVarUint(buf, e.ClientID)
 		buf = lib0.WriteVarUint(buf, uint64(e.Clock))
-		buf = lib0.WriteVarString(buf, string(e.JSON))
+		// A lib0 varstring is a byte-length varuint followed by UTF-8 bytes,
+		// identical on the wire to WriteVarUint8Array. Writing JSON directly
+		// avoids allocating a temporary string for every presence entry.
+		buf = lib0.WriteVarUint8Array(buf, e.JSON)
 	}
 	return buf
 }
