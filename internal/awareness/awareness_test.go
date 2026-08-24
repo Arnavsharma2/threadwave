@@ -605,3 +605,17 @@ func TestSortAscending(t *testing.T) {
 		t.Errorf("sortAscending result not sorted: %v", in)
 	}
 }
+
+func BenchmarkEncodeUpdate(b *testing.B) {
+	const clients = 4096
+	payload := []byte(`{"name":"threadwave","cursor":{"anchor":1234,"head":1250}}`)
+	entries := make([]wireEntry, clients)
+	for i := range entries {
+		entries[i] = wireEntry{ClientID: uint64(i), Clock: uint32(i), JSON: payload}
+	}
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = encodeUpdate(entries)
+	}
+}
