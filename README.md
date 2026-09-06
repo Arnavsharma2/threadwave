@@ -6,24 +6,31 @@
 [![Go Version](https://img.shields.io/badge/go-1.25%2B-00ADD8.svg)](go.mod)
 [![Yjs Protocol](https://img.shields.io/badge/Yjs%20protocol-V1%20%2B%20V2-7c3aed.svg)](https://github.com/yjs/yjs)
 
-Threadwave is a pure-Go collaborative state engine for offline-first, realtime,
-server, and mobile applications. It implements V1 and V2 protocols so existing JavaScript clients can synchronize with Go
-services without a Node runtime or CGO.
+A Go engine for collaborative applications that synchronize document state with JavaScript Yjs clients. Includes a WebSocket server, SQLite persistence, and an offline-first Go client.
 
-Threadwave speaks the **Yjs V1 and V2 wire formats byte-for-byte**. JavaScript clients running `yjs@13.x` synchronize directly with Go servers and vice versa, with both directions verified through **158 cross-language fixture scenarios** generated from `yjs@13.6.32`. The bundled WebSocket server is Hocuspocus-compatible. No CGO; `gomobile bind` produces an iOS xcframework and Android AAR (manually verified, not run in CI).
+Built on [Deln0r/ygo](https://github.com/Deln0r/ygo). This repository focuses on incremental-sync and encoding optimizations, server integration, and reproducible performance checks. See [provenance](NOTICE.md) and the [changelog](CHANGELOG.md).
 
-## Highlights
+[Quick start](#quick-start) · [My contributions](#my-contributions) · [Benchmarks](BENCHMARKS.md#threadwave-optimization-microbenchmarks) · [Examples](#examples) · [Design](DESIGN.md)
 
-- **Byte-for-byte wire compatibility, verified in both directions.** 158 cross-language fixture scenarios (generated from `yjs@13.6.32`) cover the V1 and V2 update formats, snapshots, subdocuments, undo, relative positions, GC, awareness, and the sync protocol, JS to Go and Go to JS, plus 56 lib0 primitive vectors. The suite runs in CI on every push, so a regression in either direction fails the build.
-- **Pure Go, no CGO — mobile included.** Cross-compiles freely to every Go target. The CRDT core, the sync client and the server also compile to `js/wasm` and `wasip1/wasm`; the one exception is the SQLite-backed store in [`persist/sqlite`](persist/sqlite), since `modernc.org/sqlite` is transpiled C with no wasm target — a browser build supplies its own [`persist.Store`](persist) instead (it is a seven-method interface). `gomobile bind` produces an iOS xcframework and Android AAR (manually verified on 2026-06-12, not run in CI) carrying a full mobile SDK: editable Text / Map, undo, cursors, and a built-in background sync client (WebSocket + reconnect), so a Swift / Kotlin app only renders UI. No V8, no embedded JavaScript engine, no Rust FFI bridge.
-- **Embeddable sync client, offline-first.** The [`client`](client) package is a Go-native y-websocket/Hocuspocus provider: handshake, incremental updates, awareness, reconnect with backoff. With a `LocalStore` it persists the document to disk (pure-Go SQLite), loads it before any network so the app works offline, and syncs edits made offline up on reconnect. The building block for bots, CLI tools, server-side agents, and the mobile SDK (`EnableOfflineStore`).
-- **Complete CRDT type set.** Map, Array, Text (rich-text formatting, Quill deltas, embeds), XML types, Awareness, UndoManager, Snapshots / time-travel, and Subdocuments.
-- **Change observers.** `Map.Observe` / `Array.Observe` / `Text.Observe` deliver Quill-style deltas of exactly what changed; `ObserveDeep` bubbles events from nested types with their path. Semantic parity with yjs's YMapEvent / YArrayEvent / YTextEvent. On mobile, `ObserveChanges` hands a native editor the delta as JSON.
-- **Compact encoding.** Commit-time block squash collapses per-character edits into single items (about 1 byte per character in V1), and garbage collection frees deleted content at commit. On a real-world editing trace V1 document size drops from ~1.97 MB to ~223 KB, competitive with V2.
-- **Forward-looking wire handling.** Threadwave handles 53-bit client IDs throughout (byte-verified above 2^32), the confirmed wire-level change in the `yjs@14` release candidate, and decodes Skip structs in the update stream as no-op gaps (part of the wire format since yjs v13.5). Full attribution / IdMap support waits for the v14 format to stabilize.
-- **Ready-to-run server: [threadserve](docs/threadserve.md).** A self-hosted Yjs server in a single static binary — a Hocuspocus alternative with no Node, no Redis, no CGO. Same wire protocol, so existing `@hocuspocus/provider` / `y-websocket` clients connect unchanged; SQLite persistence and periodic document versioning built in. Also embeds as a plain `http.Handler` inside an existing Go backend.
-- **Scales horizontally.** Several server instances behind a load balancer converge on the same document through a pluggable [backplane](server/backplane): edits and live cursors both cross instances, so two users on different servers collaborate as if on one. An in-process hub ships in the core; an opt-in [NATS adapter](server/backplane/nats) (versioned separately so the core stays dependency-free) spans machines, with a JetStream mode that resumes delivery across a broker reconnect or restart. Clustered instances share one `Store` and run the same threadwave version.
+## My contributions
+
+- **Incremental synchronization:** replaced linear scans with the store's existing binary-search lookup when finding the start of a document diff. [Change](https://github.com/Arnavsharma2/threadwave/commit/34a671ea2a75b55a52371b3ad8e006c13d537751)
+- **Allocation reduction:** preallocated protocol buffers and removed temporary JSON copies in presence updates. The recorded 4,096-entry encoding microbenchmark went from **4,121 allocations to 1**. [Methodology and results](BENCHMARKS.md#threadwave-optimization-microbenchmarks)
+- **Server integration:** added configurable operational logging so embedded servers can use an application's logger. [Change](https://github.com/Arnavsharma2/threadwave/commit/91dea2dd23cb65acf5d7521b8848c1cf4ce8f2c2)
+
+The CRDT foundation, Yjs compatibility suite, mobile SDK, and initial server architecture come from ygo. Reported microbenchmarks cover specific operations, not end-to-end application speedups.
+
 ## Quick start
+
+Requires [Go 1.25 or newer](go.mod). Run the server from source:
+
+```sh
+git clone https://github.com/Arnavsharma2/threadwave.git
+cd threadwave
+go run ./cmd/threadserve -addr :1234 -store data.db -version-interval 10m
+```
+
+Connect a Yjs client to the WebSocket server using the [server guide](docs/threadserve.md), or use the Go library directly:
 
 ```go
 package main
@@ -161,12 +168,32 @@ defer unsub()
 
 `Array.Observe` and `Text.Observe` deliver a Quill-style delta (`{Insert, Delete, Retain}` ops; Text ops carry formatting attributes). `Map.ObserveDeep` / `Array.ObserveDeep` fire for changes to nested types too, with each event's `Path` from the observed type to the change. The event semantics match `yjs`'s YMapEvent / YArrayEvent / YTextEvent, cross-checked against captured reference output.
 
+## Capabilities
+
+<details>
+<summary>Compatibility, client, persistence, and deployment details</summary>
+
+- **Byte-for-byte wire compatibility, verified in both directions.** 158 cross-language fixture scenarios (generated from `yjs@13.6.32`) cover the V1 and V2 update formats, snapshots, subdocuments, undo, relative positions, GC, awareness, and the sync protocol, JS to Go and Go to JS, plus 56 lib0 primitive vectors. The suite runs in CI on every push, so a regression in either direction fails the build.
+- **Pure Go, no CGO — mobile included.** Cross-compiles freely to every Go target. The CRDT core, the sync client and the server also compile to `js/wasm` and `wasip1/wasm`; the one exception is the SQLite-backed store in [`persist/sqlite`](persist/sqlite), since `modernc.org/sqlite` is transpiled C with no wasm target — a browser build supplies its own [`persist.Store`](persist) instead (it is a seven-method interface). `gomobile bind` produces an iOS xcframework and Android AAR (manually verified on 2026-06-12, not run in CI) carrying a full mobile SDK: editable Text / Map, undo, cursors, and a built-in background sync client (WebSocket + reconnect), so a Swift / Kotlin app only renders UI. No V8, no embedded JavaScript engine, no Rust FFI bridge.
+- **Embeddable sync client, offline-first.** The [`client`](client) package is a Go-native y-websocket/Hocuspocus provider: handshake, incremental updates, awareness, reconnect with backoff. With a `LocalStore` it persists the document to disk (pure-Go SQLite), loads it before any network so the app works offline, and syncs edits made offline up on reconnect. The building block for bots, CLI tools, server-side agents, and the mobile SDK (`EnableOfflineStore`).
+- **Complete CRDT type set.** Map, Array, Text (rich-text formatting, Quill deltas, embeds), XML types, Awareness, UndoManager, Snapshots / time-travel, and Subdocuments.
+- **Change observers.** `Map.Observe` / `Array.Observe` / `Text.Observe` deliver Quill-style deltas of exactly what changed; `ObserveDeep` bubbles events from nested types with their path. Semantic parity with yjs's YMapEvent / YArrayEvent / YTextEvent. On mobile, `ObserveChanges` hands a native editor the delta as JSON.
+- **Compact encoding.** Commit-time block squash collapses per-character edits into single items (about 1 byte per character in V1), and garbage collection frees deleted content at commit. On a real-world editing trace V1 document size drops from ~1.97 MB to ~223 KB, competitive with V2.
+- **Forward-looking wire handling.** Threadwave handles 53-bit client IDs throughout (byte-verified above 2^32), the confirmed wire-level change in the `yjs@14` release candidate, and decodes Skip structs in the update stream as no-op gaps (part of the wire format since yjs v13.5). Full attribution / IdMap support waits for the v14 format to stabilize.
+- **Ready-to-run server: [threadserve](docs/threadserve.md).** A self-hosted Yjs server in a single static binary — a Hocuspocus alternative with no Node, no Redis, no CGO. Same wire protocol, so existing `@hocuspocus/provider` / `y-websocket` clients connect unchanged; SQLite persistence and periodic document versioning built in. Also embeds as a plain `http.Handler` inside an existing Go backend.
+- **Scales horizontally.** Several server instances behind a load balancer converge on the same document through a pluggable [backplane](server/backplane): edits and live cursors both cross instances, so two users on different servers collaborate as if on one. An in-process hub ships in the core; an opt-in [NATS adapter](server/backplane/nats) (versioned separately so the core stays dependency-free) spans machines, with a JetStream mode that resumes delivery across a broker reconnect or restart. Clustered instances share one `Store` and run the same threadwave version.
+
+</details>
+
 ## Status
 
 **Mature foundation, new standalone project.** The imported CRDT engine, V1 and
 V2 wire formats, and type set are validated bidirectionally against
 `yjs@13.6.32`. Threadwave itself is pre-1.0 while its independently branded API
 and roadmap evolve.
+
+<details>
+<summary>Full implementation status by component</summary>
 
 | Layer | Status |
 |---|---|
@@ -202,6 +229,8 @@ and roadmap evolve.
 | Versioned persistence | done; named point-in-time versions independent of the live log (`persist.VersionStore`: save / list / load / restore / prune), atomic restore, sqlite reference implementation |
 | Change observers | done; `Map.Observe` (YMapEvent: add / update / delete + oldValue), `Array.Observe` and `Text.Observe` (Quill-style insert / delete / retain delta, Text formatting-aware), `Map`/`Array.ObserveDeep` (event-path bubbling from nested types). Deltas cross-checked against captured `yjs@13.6.32` output; fire on local and remote transactions. gomobile `Text`/`Map.ObserveChanges` deliver the delta as Quill JSON |
 
+</details>
+
 ## Goals
 
 1. **Binary protocol compatibility** with [Yjs](https://github.com/yjs/yjs) v13.x in both V1 and V2 wire formats. Byte-for-byte. JS clients sync with Go servers and vice versa, bidirectionally verified.
@@ -236,12 +265,17 @@ If you have an existing Yjs deployment and want to move the server side to Go (n
 
 ## Benchmarks
 
+Start with the [Threadwave optimization microbenchmarks](BENCHMARKS.md#threadwave-optimization-microbenchmarks) for changes made in this repository. The larger benchmark suite below is retained as an upstream reference.
+
+<details>
+<summary>Inherited ygo benchmark results and comparison caveats</summary>
+
 See [BENCHMARKS.md](BENCHMARKS.md) for the full table and provenance. The
 inherited upstream baseline includes these B4 results for a 259,778-edit
 real-world LaTeX paper trace on Apple M3 with Go 1.26; Threadwave has not yet
 rerun them under its new identity:
 
-| Metric | Threadwave V1 | Threadwave V2 | yjs (Node, Intel i5-8400) | ywasm (Intel i5-8400) |
+| Metric | Upstream ygo V1 | Upstream ygo V2 | yjs (Node, Intel i5-8400) | ywasm (Intel i5-8400) |
 |---|---|---|---|---|
 | Apply all edits | 20.3 s | 20.3 s | 5.7 s | 28.7 s |
 | Encoded doc size | **223 KB** | **160 KB** | 160 KB | 160 KB |
@@ -255,6 +289,8 @@ rerun them under its new identity:
 - **Encode and parse are fast once the doc is compact:** V1 encode 0.6 ms and parse 4.4 ms on the 223 KB document, both ahead of yjs's published numbers on its hardware.
 
 A direct head-to-head harness against native yrs under identical hardware is on the roadmap but not yet run; the numbers above are honest absolute figures with hardware caveats.
+
+</details>
 
 ## Roadmap
 
@@ -280,6 +316,7 @@ The core CRDT API also has output-verified [runnable examples on pkg.go.dev](htt
 
 ## Documentation
 
+- [NOTICE.md](NOTICE.md) — source provenance and attribution
 - [DESIGN.md](DESIGN.md) — project design document
 - [CHANGELOG.md](CHANGELOG.md) — Threadwave's independent change history
 - [BENCHMARKS.md](BENCHMARKS.md) — performance baseline + B1-B4 methodology
